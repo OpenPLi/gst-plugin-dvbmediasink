@@ -91,63 +91,67 @@ enum
 
 static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 
+#define AUDIOCAPS \
+		"audio/mpeg, " \
+		"framed =(boolean) true; " \
+		"audio/x-ac3, " \
+		"framed =(boolean) true; " \
+		"audio/x-private1-ac3, " \
+		"framed =(boolean) true; " \
+		"audio/x-private1-lpcm, " \
+		"framed =(boolean) true; "
+
+#define DTSCAPS \
+		"audio/x-dts, " \
+		"framed =(boolean) true; " \
+		"audio/x-private1-dts, " \
+		"framed =(boolean) true; "
+
+#define WMACAPS \
+		"audio/x-wma, " \
+		"framed =(boolean) true; " \
+
+#define AMRCAPS \
+		"audio/AMR, " \
+		"rate = (int) {8000, 16000}, channels = (int) 1; " \
+
+#define PCMCAPS \
+		"audio/x-raw-int, " \
+		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
+		"signed = (boolean) { TRUE, FALSE }, " \
+		"width = (int) 32, " \
+		"depth = (int) 32, " \
+		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; " \
+		"audio/x-raw-int, " \
+		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
+		"signed = (boolean) { TRUE, FALSE }, " \
+		"width = (int) 24, " \
+		"depth = (int) 24, " \
+		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; " \
+		"audio/x-raw-int, " \
+		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
+		"signed = (boolean) { TRUE, FALSE }, " \
+		"width = (int) 32, " \
+		"depth = (int) 24, " \
+		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; " \
+		"audio/x-raw-int, " \
+		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
+		"signed = (boolean) { TRUE, FALSE }, " \
+		"width = (int) 16, " \
+		"depth = (int) 16, " \
+		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; " \
+		"audio/x-raw-int, " \
+		"signed = (boolean) { TRUE, FALSE }, " \
+		"width = (int) 8, " \
+		"depth = (int) 8, " \
+		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ];" \
+
 static GstStaticPadTemplate sink_factory =
 GST_STATIC_PAD_TEMPLATE(
 	"sink",
 	GST_PAD_SINK,
 	GST_PAD_ALWAYS,
-	GST_STATIC_CAPS("audio/mpeg, "
-		"framed =(boolean) true; "
-		"audio/x-ac3, "
-		"framed =(boolean) true; "
-		"audio/x-private1-ac3, "
-		"framed =(boolean) true; "
-		"audio/x-dts, "
-		"framed =(boolean) true; "
-		"audio/x-private1-dts, "
-		"framed =(boolean) true; "
-		"audio/x-private1-lpcm, "
-		"framed =(boolean) true; "
-#ifdef HAVE_WMA
-		"audio/x-wma, "
-		"framed =(boolean) true; "
-#endif
-#ifdef HAVE_AMR
-		"audio/AMR, " 
-		"rate = (int) {8000, 16000}, channels = (int) 1; "
-#endif
-#ifdef HAVE_PCM
-		"audio/x-raw-int, "
-		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, "
-		"signed = (boolean) { TRUE, FALSE }, "
-		"width = (int) 32, "
-		"depth = (int) 32, "
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; "
-		"audio/x-raw-int, "
-		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, "
-		"signed = (boolean) { TRUE, FALSE }, "
-		"width = (int) 24, "
-		"depth = (int) 24, "
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; "
-		"audio/x-raw-int, "
-		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, "
-		"signed = (boolean) { TRUE, FALSE }, "
-		"width = (int) 32, "
-		"depth = (int) 24, "
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; "
-		"audio/x-raw-int, "
-		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, "
-		"signed = (boolean) { TRUE, FALSE }, "
-		"width = (int) 16, "
-		"depth = (int) 16, "
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; "
-		"audio/x-raw-int, "
-		"signed = (boolean) { TRUE, FALSE }, "
-		"width = (int) 8, "
-		"depth = (int) 8, "
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ];"
-#endif
-	)
+	GST_STATIC_CAPS(AUDIOCAPS DTSCAPS WMACAPS AMRCAPS PCMCAPS)
 );
 
 #define DEBUG_INIT \
@@ -162,6 +166,7 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink * sink, GstBuffer * buf
 static gboolean gst_dvbaudiosink_unlock(GstBaseSink * basesink);
 static gboolean gst_dvbaudiosink_unlock_stop(GstBaseSink * basesink);
 static gboolean gst_dvbaudiosink_set_caps(GstBaseSink * sink, GstCaps * caps);
+static GstCaps *gst_dvbaudiosink_get_caps(GstBaseSink * sink);
 static GstStateChangeReturn gst_dvbaudiosink_change_state(GstElement * element, GstStateChange transition);
 static gint64 gst_dvbaudiosink_get_decoder_time(GstDVBAudioSink *self);
 
@@ -194,6 +199,7 @@ static void gst_dvbaudiosink_class_init(GstDVBAudioSinkClass *self)
 	gstbasesink_class->unlock = GST_DEBUG_FUNCPTR(gst_dvbaudiosink_unlock);
 	gstbasesink_class->unlock_stop = GST_DEBUG_FUNCPTR(gst_dvbaudiosink_unlock_stop);
 	gstbasesink_class->set_caps = GST_DEBUG_FUNCPTR(gst_dvbaudiosink_set_caps);
+	gstbasesink_class->get_caps = GST_DEBUG_FUNCPTR(gst_dvbaudiosink_get_caps);
 
 	gelement_class->change_state = GST_DEBUG_FUNCPTR(gst_dvbaudiosink_change_state);
 
@@ -260,6 +266,44 @@ static gboolean gst_dvbaudiosink_unlock_stop(GstBaseSink *basesink)
 	self->unlocking = FALSE;
 	GST_DEBUG_OBJECT(basesink, "unlock_stop");
 	return TRUE;
+}
+
+#ifdef HAVE_DTSDOWNMIX
+static gboolean get_downmix_setting()
+{
+	FILE *f;
+	char buffer[32] = {0};
+	f = fopen("/proc/stb/audio/ac3", "r");
+	if (f)
+	{
+		fread(buffer, sizeof(buffer), 1, f);
+		fclose(f);
+	}
+	return !strncmp(buffer, "downmix", 7);
+}
+#endif
+
+static GstCaps *gst_dvbaudiosink_get_caps(GstBaseSink *basesink)
+{
+	GstCaps *caps = gst_caps_from_string(AUDIOCAPS);
+#ifdef HAVE_DTSDOWNMIX
+	if (!get_downmix_setting())
+	{
+		gst_caps_append(caps, gst_caps_from_string(DTSCAPS));
+	}
+#else
+	gst_caps_append(caps, gst_caps_from_string(DTSCAPS));
+#endif
+#ifdef HAVE_WMA
+	gst_caps_append(caps, gst_caps_from_string(WMACAPS));
+#endif
+#ifdef HAVE_AMR
+	gst_caps_append(caps, gst_caps_from_string(AMRCAPS));
+#endif
+#ifdef HAVE_PCM
+	gst_caps_append(caps, gst_caps_from_string(PCMCAPS));
+#endif
+	return caps;
 }
 
 static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)

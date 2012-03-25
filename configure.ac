@@ -141,6 +141,9 @@ fi
 AC_ARG_WITH(dtsdownmix,
 	AS_HELP_STRING([--with-dtsdownmix],[build dts downmix element, yes or no]),
 	[have_dtsdownmix=$withval],[have_dtsdownmix=no])
+if test "$have_dtsdownmix" = "yes"; then
+	AC_DEFINE([HAVE_DTSDOWNMIX],[1],[Define to 1 for DTS downmix support])
+fi
 DTS_LIBS="-ldca $LIBM"
 AC_SUBST(DTS_LIBS)
 AM_CONDITIONAL(HAVE_DTSDOWNMIX, test "$have_dtsdownmix" = "yes")
