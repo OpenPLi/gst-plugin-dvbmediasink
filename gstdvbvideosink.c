@@ -184,15 +184,6 @@ GST_STATIC_PAD_TEMPLATE (
 #endif
 		"systemstream = (boolean) false, "
 		VIDEO_CAPS "; "
-#ifdef HAVE_MSMPEG
-	"video/x-msmpeg, "
-#ifdef HAVE_LIMITED_MPEG4V2
-		MPEG4V2_LIMITED_CAPS
-#else
-		VIDEO_CAPS 
-#endif
-		", mspegversion = (int) 43; "
-#endif
 #ifdef HAVE_H264
 	"video/x-h264, "
 		VIDEO_CAPS "; "
@@ -201,7 +192,14 @@ GST_STATIC_PAD_TEMPLATE (
 	"video/x-h263, "
 		VIDEO_CAPS "; "
 #endif
-#ifdef HAVE_DIVX
+#ifdef HAVE_MPEG4V2
+	"video/x-msmpeg, "
+#ifdef HAVE_LIMITED_MPEG4V2
+		MPEG4V2_LIMITED_CAPS
+#else
+		VIDEO_CAPS 
+#endif
+		", mspegversion = (int) 43; "
 	"video/x-divx, "
 #ifdef HAVE_LIMITED_MPEG4V2
 		MPEG4V2_LIMITED_CAPS
@@ -209,8 +207,6 @@ GST_STATIC_PAD_TEMPLATE (
 		VIDEO_CAPS 
 #endif
 		", divxversion = (int) [ 3, 5 ]; "
-#endif
-#ifdef HAVE_XVID
 	"video/x-xvid, "
 #ifdef HAVE_LIMITED_MPEG4V2
 		MPEG4V2_LIMITED_CAPS

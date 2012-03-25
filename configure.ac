@@ -131,25 +131,11 @@ if test "$have_h263" = "yes"; then
 	AC_DEFINE([HAVE_H263],[1],[Define to 1 for h263 support])
 fi
 
-AC_ARG_WITH(divx,
-	AS_HELP_STRING([--with-divx],[support divx, yes or no]),
-	[have_divx=$withval],[have_divx=yes])
-if test "$have_divx" = "yes"; then
-	AC_DEFINE([HAVE_DIVX],[1],[Define to 1 for divx support])
-fi
-
-AC_ARG_WITH(xvid,
-	AS_HELP_STRING([--with-xvid],[support xvid, yes or no]),
-	[have_xvid=$withval],[have_xvid=yes])
-if test "$have_xvid" = "yes"; then
-	AC_DEFINE([HAVE_XVID],[1],[Define to 1 for xvid support])
-fi
-
-AC_ARG_WITH(msmpeg,
-	AS_HELP_STRING([--with-msmpeg],[support msmpeg, yes or no]),
-	[have_msmpeg=$withval],[have_msmpeg=yes])
-if test "$have_msmpeg" = "yes"; then
-	AC_DEFINE([HAVE_MSMPEG],[1],[Define to 1 for msmpeg support])
+AC_ARG_WITH(mpeg4v2,
+	AS_HELP_STRING([--with-mpeg4v2],[support mpeg4v2 (divx, xvid, msmpeg, 3ivx) yes or no]),
+	[have_mpeg4v2=$withval],[have_mpeg4v2=yes])
+if test "$have_mpeg4v2" = "yes"; then
+	AC_DEFINE([HAVE_MPEG4V2],[1],[Define to 1 for mpeg4v2 support])
 fi
 
 AC_ARG_WITH(limited-mpeg4v2,
