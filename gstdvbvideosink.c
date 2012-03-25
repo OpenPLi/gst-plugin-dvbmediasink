@@ -157,6 +157,11 @@ GST_DEBUG_CATEGORY_STATIC (dvbvideosink_debug);
   "height = (int) [ 16, 4096 ], " \
   "framerate = (fraction) [ 0, MAX ]"
 
+#define MPEG4V2_LIMITED_CAPS \
+  "width = (int) [ 16, 800 ], " \
+  "height = (int) [ 16, 600 ], " \
+  "framerate = (fraction) [ 0, MAX ]"
+
 enum
 {
 	SIGNAL_GET_DECODER_TIME,
@@ -171,25 +176,59 @@ GST_STATIC_PAD_TEMPLATE (
 	GST_PAD_SINK,
 	GST_PAD_ALWAYS,
 	GST_STATIC_CAPS (
-		"video/mpeg, "
+	"video/mpeg, "
+#ifdef HAVE_MPEG4
 		"mpegversion = (int) { 1, 2, 4 }, "
+#else
+		"mpegversion = (int) { 1, 2 }, "
+#endif
 		"systemstream = (boolean) false, "
-	VIDEO_CAPS "; "
-		"video/x-msmpeg, "
-	VIDEO_CAPS ", mspegversion = (int) 43; "
-		"video/x-h264, "
-	VIDEO_CAPS "; "
-		"video/x-h263, "
-	VIDEO_CAPS "; "
-		"video/x-divx, "
-	VIDEO_CAPS ", divxversion = (int) [ 3, 5 ]; "
-		"video/x-xvid, "
-	VIDEO_CAPS "; "
-		"video/x-3ivx, "
-	VIDEO_CAPS "; "
+		VIDEO_CAPS "; "
+#ifdef HAVE_MSMPEG
+	"video/x-msmpeg, "
+#ifdef HAVE_LIMITED_MPEG4V2
+		MPEG4V2_LIMITED_CAPS
+#else
+		VIDEO_CAPS 
+#endif
+		", mspegversion = (int) 43; "
+#endif
+#ifdef HAVE_H264
+	"video/x-h264, "
+		VIDEO_CAPS "; "
+#endif
+#ifdef HAVE_H263
+	"video/x-h263, "
+		VIDEO_CAPS "; "
+#endif
+#ifdef HAVE_DIVX
+	"video/x-divx, "
+#ifdef HAVE_LIMITED_MPEG4V2
+		MPEG4V2_LIMITED_CAPS
+#else
+		VIDEO_CAPS 
+#endif
+		", divxversion = (int) [ 3, 5 ]; "
+#endif
+#ifdef HAVE_XVID
+	"video/x-xvid, "
+#ifdef HAVE_LIMITED_MPEG4V2
+		MPEG4V2_LIMITED_CAPS
+#else
+		VIDEO_CAPS 
+#endif
+		"; "
+	"video/x-3ivx, "
+#ifdef HAVE_LIMITED_MPEG4V2
+		MPEG4V2_LIMITED_CAPS
+#else
+		VIDEO_CAPS 
+#endif
+		"; "
+#endif
 #ifdef HAVE_WMV
-		"video/x-wmv, "
-	VIDEO_CAPS ", wmvversion = (int) 3; "
+	"video/x-wmv, "
+		VIDEO_CAPS ", wmvversion = (int) 3; "
 #endif
 	)
 );

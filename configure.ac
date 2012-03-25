@@ -110,6 +110,55 @@ dnl set proper LDFLAGS for plugins
 GST_PLUGIN_LDFLAGS='-module -avoid-version -export-symbols-regex [_]*\(gst_\|Gst\|GST_\).*'
 AC_SUBST(GST_PLUGIN_LDFLAGS)
 
+AC_ARG_WITH(mpeg4,
+	AS_HELP_STRING([--with-mpeg4],[support mpeg4, yes or no]),
+	[have_mpeg4=$withval],[have_mpeg4=yes])
+if test "$have_mpeg4" = "yes"; then
+	AC_DEFINE([HAVE_MPEG4],[1],[Define to 1 for mpeg4 support])
+fi
+
+AC_ARG_WITH(h264,
+	AS_HELP_STRING([--with-h264],[support h264, yes or no]),
+	[have_h264=$withval],[have_h264=yes])
+if test "$have_h264" = "yes"; then
+	AC_DEFINE([HAVE_H264],[1],[Define to 1 for h264 support])
+fi
+
+AC_ARG_WITH(h263,
+	AS_HELP_STRING([--with-h263],[support h263, yes or no]),
+	[have_h263=$withval],[have_h263=yes])
+if test "$have_h263" = "yes"; then
+	AC_DEFINE([HAVE_H263],[1],[Define to 1 for h263 support])
+fi
+
+AC_ARG_WITH(divx,
+	AS_HELP_STRING([--with-divx],[support divx, yes or no]),
+	[have_divx=$withval],[have_divx=yes])
+if test "$have_divx" = "yes"; then
+	AC_DEFINE([HAVE_DIVX],[1],[Define to 1 for divx support])
+fi
+
+AC_ARG_WITH(xvid,
+	AS_HELP_STRING([--with-xvid],[support xvid, yes or no]),
+	[have_xvid=$withval],[have_xvid=yes])
+if test "$have_xvid" = "yes"; then
+	AC_DEFINE([HAVE_XVID],[1],[Define to 1 for xvid support])
+fi
+
+AC_ARG_WITH(msmpeg,
+	AS_HELP_STRING([--with-msmpeg],[support msmpeg, yes or no]),
+	[have_msmpeg=$withval],[have_msmpeg=yes])
+if test "$have_msmpeg" = "yes"; then
+	AC_DEFINE([HAVE_MSMPEG],[1],[Define to 1 for msmpeg support])
+fi
+
+AC_ARG_WITH(limited-mpeg4v2,
+	AS_HELP_STRING([--with-limited-mpeg4v2],[limited (800x600) mpeg4v2, yes or no]),
+	[have_limited_mpeg4v2=$withval],[have_limited_mpeg4v2=no])
+if test "$have_limited_mpeg4v2" = "yes"; then
+	AC_DEFINE([HAVE_LIMITED_MPEG4V2],[1],[Define to 1 for limited (800x600) mpeg4v2 support])
+fi
+
 AC_ARG_WITH(wmv,
 	AS_HELP_STRING([--with-wmv],[support wmv, yes or no]),
 	[have_wmv=$withval],[have_wmv=no])
