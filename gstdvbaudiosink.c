@@ -91,13 +91,25 @@ enum
 
 static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 
-#define AUDIOCAPS \
+#ifdef HAVE_MP3
+#define MPEGCAPS \
 		"audio/mpeg, " \
-		"framed =(boolean) true; " \
+		"framed =(boolean) true; "
+#else
+#define MPEGCAPS \
+		"audio/mpeg, " \
+		"mpegversion = (int) 1, " \
+		"layer = (int) [ 1, 2 ], " \
+		"framed =(boolean) true; "
+#endif
+
+#define AC3CAPS \
 		"audio/x-ac3, " \
 		"framed =(boolean) true; " \
 		"audio/x-private1-ac3, " \
-		"framed =(boolean) true; " \
+		"framed =(boolean) true; "
+
+#define LPCMCAPS \
 		"audio/x-private1-lpcm, " \
 		"framed =(boolean) true; "
 
@@ -109,11 +121,11 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 
 #define WMACAPS \
 		"audio/x-wma, " \
-		"framed =(boolean) true; " \
+		"framed =(boolean) true; "
 
 #define AMRCAPS \
 		"audio/AMR, " \
-		"rate = (int) {8000, 16000}, channels = (int) 1; " \
+		"rate = (int) {8000, 16000}, channels = (int) 1; "
 
 #define PCMCAPS \
 		"audio/x-raw-int, " \
@@ -144,14 +156,32 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 		"signed = (boolean) { TRUE, FALSE }, " \
 		"width = (int) 8, " \
 		"depth = (int) 8, " \
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ];" \
+		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ];"
 
 static GstStaticPadTemplate sink_factory =
 GST_STATIC_PAD_TEMPLATE(
 	"sink",
 	GST_PAD_SINK,
 	GST_PAD_ALWAYS,
-	GST_STATIC_CAPS(AUDIOCAPS DTSCAPS WMACAPS AMRCAPS PCMCAPS)
+	GST_STATIC_CAPS(
+		MPEGCAPS 
+		AC3CAPS
+#ifdef HAVE_DTS
+		DTSCAPS
+#endif
+#ifdef HAVE_LPCM
+		LPCMCAPS
+#endif
+#ifdef HAVE_WMA
+		WMACAPS
+#endif
+#ifdef HAVE_AMR
+		AMRCAPS
+#endif
+#ifdef HAVE_PCM
+		PCMCAPS
+#endif
+	)
 );
 
 #define DEBUG_INIT \
@@ -285,24 +315,34 @@ static gboolean get_downmix_setting()
 
 static GstCaps *gst_dvbaudiosink_get_caps(GstBaseSink *basesink)
 {
-	GstCaps *caps = gst_caps_from_string(AUDIOCAPS);
-#ifdef HAVE_DTSDOWNMIX
+	GstCaps *caps = gst_caps_from_string(
+		MPEGCAPS 
+		AC3CAPS
+#ifdef HAVE_LPCM
+		LPCMCAPS
+#endif
+#ifdef HAVE_WMA
+		WMACAPS
+#endif
+#ifdef HAVE_AMR
+		AMRCAPS
+#endif
+#ifdef HAVE_PCM
+		PCMCAPS
+#endif
+	);
+
+#ifdef HAVE_DTS
+# ifdef HAVE_DTSDOWNMIX
 	if (!get_downmix_setting())
 	{
 		gst_caps_append(caps, gst_caps_from_string(DTSCAPS));
 	}
-#else
+# else
 	gst_caps_append(caps, gst_caps_from_string(DTSCAPS));
+# endif
 #endif
-#ifdef HAVE_WMA
-	gst_caps_append(caps, gst_caps_from_string(WMACAPS));
-#endif
-#ifdef HAVE_AMR
-	gst_caps_append(caps, gst_caps_from_string(AMRCAPS));
-#endif
-#ifdef HAVE_PCM
-	gst_caps_append(caps, gst_caps_from_string(PCMCAPS));
-#endif
+
 	return caps;
 }
 

@@ -152,6 +152,27 @@ if test "$have_wmv" = "yes"; then
 	AC_DEFINE([HAVE_WMV],[1],[Define to 1 for wmv support])
 fi
 
+AC_ARG_WITH(mp3,
+	AS_HELP_STRING([--with-mp3],[support mp3, yes or no]),
+	[have_mp3=$withval],[have_mp3=yes])
+if test "$have_mp3" = "yes"; then
+	AC_DEFINE([HAVE_MP3],[1],[Define to 1 for mp3 support])
+fi
+
+AC_ARG_WITH(dts,
+	AS_HELP_STRING([--with-dts],[support dts, yes or no]),
+	[have_dts=$withval],[have_dts=yes])
+if test "$have_dts" = "yes"; then
+	AC_DEFINE([HAVE_DTS],[1],[Define to 1 for dts support])
+fi
+
+AC_ARG_WITH(lpcm,
+	AS_HELP_STRING([--with-lpcm],[support LPCM, yes or no]),
+	[have_lpcm=$withval],[have_lpcm=yes])
+if test "$have_lpcm" = "yes"; then
+	AC_DEFINE([HAVE_LPCM],[1],[Define to 1 for LPCM support])
+fi
+
 AC_ARG_WITH(wma,
 	AS_HELP_STRING([--with-wma],[support wma, yes or no]),
 	[have_wma=$withval],[have_wma=no])
