@@ -306,6 +306,7 @@ static void gst_dvbvideosink_init (GstDVBVideoSink *self, GstDVBVideoSinkClass *
 #endif
 	self->paused = self->playing = self->unlocking = self->flushing = FALSE;
 	self->pts_written = FALSE;
+	self->lastpts = 0;
 	self->queue = NULL;
 	self->fd = -1;
 	self->unlockfd[0] = self->unlockfd[1] = -1;
@@ -322,6 +323,14 @@ static gint64 gst_dvbvideosink_get_decoder_time(GstDVBVideoSink *self)
 	if (self->fd < 0 || !self->playing || !self->pts_written) return GST_CLOCK_TIME_NONE;
 
 	ioctl(self->fd, VIDEO_GET_PTS, &cur);
+	if (cur)
+	{
+		self->lastpts = cur;
+	}
+	else
+	{
+		cur = self->lastpts;
+	}
 	cur *= 11111;
 	return cur;
 }
@@ -365,7 +374,6 @@ static gboolean gst_dvbvideosink_event(GstBaseSink *sink, GstEvent *event)
 		{
 			queue_pop(&self->queue);
 		}
-		self->pts_written = FALSE;
 		self->flushing = FALSE;
 		GST_OBJECT_UNLOCK(self);
 		break;
@@ -1414,6 +1422,7 @@ static gboolean gst_dvbvideosink_start(GstBaseSink *basesink)
 	self->fd = open("/dev/dvb/adapter0/video0", O_RDWR | O_NONBLOCK);
 
 	self->pts_written = FALSE;
+	self->lastpts = 0;
 
 	return TRUE;
 error:

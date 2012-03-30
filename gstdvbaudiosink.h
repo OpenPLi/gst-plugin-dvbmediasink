@@ -90,6 +90,7 @@ struct _GstDVBAudioSink
 	gdouble rate;
 	gboolean playing, paused, flushing, unlocking;
 	gboolean pts_written;
+	gint64 lastpts;
 
 	queue_entry_t *queue;
 };

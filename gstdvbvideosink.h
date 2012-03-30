@@ -93,6 +93,7 @@ struct _GstDVBVideoSink
 	gdouble rate;
 	gboolean playing, paused, flushing, unlocking;
 	gboolean pts_written;
+	gint64 lastpts;
 	gboolean must_send_header;
 
 	queue_entry_t *queue;

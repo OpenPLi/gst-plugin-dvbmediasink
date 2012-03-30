@@ -260,6 +260,7 @@ static void gst_dvbaudiosink_init(GstDVBAudioSink *self, GstDVBAudioSinkClass *g
 	self->cache = NULL;
 	self->playing = self->flushing = self->unlocking = self->paused = FALSE;
 	self->pts_written = FALSE;
+	self->lastpts = 0;
 	self->queue = NULL;
 	self->fd = -1;
 	self->unlockfd[0] = self->unlockfd[1] = -1;
@@ -276,6 +277,14 @@ static gint64 gst_dvbaudiosink_get_decoder_time(GstDVBAudioSink *self)
 	if (self->fd < 0 || !self->playing || !self->pts_written) return GST_CLOCK_TIME_NONE;
 
 	ioctl(self->fd, AUDIO_GET_PTS, &cur);
+	if (cur)
+	{
+		self->lastpts = cur;
+	}
+	else
+	{
+		cur = self->lastpts;
+	}
 	cur *= 11111;
 	return cur;
 }
@@ -632,7 +641,6 @@ static gboolean gst_dvbaudiosink_event(GstBaseSink *sink, GstEvent *event)
 		{
 			queue_pop(&self->queue);
 		}
-		self->pts_written = FALSE;
 		self->flushing = FALSE;
 		self->timestamp = GST_CLOCK_TIME_NONE;
 		self->fixed_buffertimestamp = GST_CLOCK_TIME_NONE;
@@ -1108,6 +1116,7 @@ static gboolean gst_dvbaudiosink_start(GstBaseSink * basesink)
 	self->fd = open("/dev/dvb/adapter0/audio0", O_RDWR | O_NONBLOCK);
 
 	self->pts_written = FALSE;
+	self->lastpts = 0;
 
 	return TRUE;
 error:
