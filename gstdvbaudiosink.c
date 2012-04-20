@@ -1251,7 +1251,7 @@ static GstStateChangeReturn gst_dvbaudiosink_change_state(GstElement *element, G
 static gboolean plugin_init(GstPlugin *plugin)
 {
 	return gst_element_register(plugin, "dvbaudiosink",
-						 GST_RANK_PRIMARY + 1,
+						 GST_RANK_PRIMARY,
 						 GST_TYPE_DVBAUDIOSINK);
 }
 
