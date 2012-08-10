@@ -91,6 +91,7 @@ struct _GstDVBAudioSink
 	gboolean playing, paused, flushing, unlocking;
 	gboolean pts_written;
 	gint64 lastpts;
+	gint64 timestamp_offset;
 
 	queue_entry_t *queue;
 };

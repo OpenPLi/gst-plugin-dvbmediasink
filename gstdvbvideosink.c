@@ -307,6 +307,7 @@ static void gst_dvbvideosink_init (GstDVBVideoSink *self, GstDVBVideoSinkClass *
 	self->paused = self->playing = self->unlocking = self->flushing = FALSE;
 	self->pts_written = FALSE;
 	self->lastpts = 0;
+	self->timestamp_offset = 0;
 	self->queue = NULL;
 	self->fd = -1;
 	self->unlockfd[0] = self->unlockfd[1] = -1;
@@ -332,7 +333,7 @@ static gint64 gst_dvbvideosink_get_decoder_time(GstDVBVideoSink *self)
 		cur = self->lastpts;
 	}
 	cur *= 11111;
-	return cur;
+	return cur - self->timestamp_offset;
 }
 
 static gboolean gst_dvbvideosink_unlock(GstBaseSink *basesink)
@@ -431,6 +432,7 @@ static gboolean gst_dvbvideosink_event(GstBaseSink *sink, GstEvent *event)
 		GST_DEBUG_OBJECT(self, "GST_EVENT_NEWSEGMENT rate=%f\n", rate);
 		if (format == GST_FORMAT_TIME)
 		{
+			self->timestamp_offset = start - pos;
 			if (rate != self->rate)
 			{
 				if (rate > 1.0)

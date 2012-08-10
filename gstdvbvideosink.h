@@ -94,6 +94,7 @@ struct _GstDVBVideoSink
 	gboolean playing, paused, flushing, unlocking;
 	gboolean pts_written;
 	gint64 lastpts;
+	gint64 timestamp_offset;
 	gboolean must_send_header;
 
 	queue_entry_t *queue;
