@@ -706,6 +706,14 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 	pes_header[8] = 0;
 	pes_header_len = 9;
 
+	if (self->codec_type == CT_VC1 || self->codec_type == CT_VC1_SM)
+	{
+		if (!(GST_BUFFER_FLAGS(buffer) & GST_BUFFER_FLAG_DELTA_UNIT))
+		{
+			pes_header[6] = 0x80;
+		}
+	}
+
 	if (GST_BUFFER_TIMESTAMP(buffer) != GST_CLOCK_TIME_NONE)
 	{
 		pes_header[7] = 0x80; /* pts */
