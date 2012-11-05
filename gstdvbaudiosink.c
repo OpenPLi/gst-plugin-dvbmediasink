@@ -143,12 +143,6 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 		"audio/x-raw-int, " \
 		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
 		"signed = (boolean) { TRUE, FALSE }, " \
-		"width = (int) 32, " \
-		"depth = (int) 24, " \
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; " \
-		"audio/x-raw-int, " \
-		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
-		"signed = (boolean) { TRUE, FALSE }, " \
 		"width = (int) 16, " \
 		"depth = (int) 16, " \
 		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; " \
