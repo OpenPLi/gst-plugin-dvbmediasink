@@ -71,6 +71,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <gst/gst.h>
 #include <gst/base/gstbasesink.h>

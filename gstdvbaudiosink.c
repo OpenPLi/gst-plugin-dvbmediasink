@@ -72,6 +72,7 @@
 #include <linux/dvb/video.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <stdio.h>
 
 #include <gst/gst.h>
 #include <gst/base/gstbasesink.h>
