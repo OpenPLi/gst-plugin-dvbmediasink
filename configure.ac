@@ -1,7 +1,10 @@
 AC_INIT
 
 dnl versions of gstreamer and plugins-base
-GST_MAJORMINOR=0.10
+AC_ARG_WITH(gstversion,
+	AS_HELP_STRING([--with-gstversion],[use gstreamer version (major.minor)]),
+	[GST_MAJORMINOR=$withval],[GST_MAJORMINOR=0.10])
+
 GST_REQUIRED=0.10.0
 GSTPB_REQUIRED=0.10.0
 

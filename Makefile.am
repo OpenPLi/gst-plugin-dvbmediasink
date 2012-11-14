@@ -23,11 +23,11 @@ libgstdvbaudiosink_la_SOURCES = gstdvbaudiosink.c common.c $(built_sources)
 # flags used to compile this plugin
 # add other _CFLAGS and _LIBS as needed
 libgstdvbvideosink_la_CFLAGS = $(GST_CFLAGS)
-libgstdvbvideosink_la_LIBADD = $(GST_LIBS) -lgstbase-0.10
+libgstdvbvideosink_la_LIBADD = $(GST_LIBS) -lgstbase-$(GST_MAJORMINOR)
 libgstdvbvideosink_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
 
 libgstdvbaudiosink_la_CFLAGS = $(GST_CFLAGS)
-libgstdvbaudiosink_la_LIBADD = $(GST_LIBS) -lgstbase-0.10
+libgstdvbaudiosink_la_LIBADD = $(GST_LIBS) -lgstbase-$(GST_MAJORMINOR)
 libgstdvbaudiosink_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
 
 # headers we need but don't want installed
@@ -39,6 +39,6 @@ plugin_LTLIBRARIES += libgstdtsdownmix.la
 libgstdtsdownmix_la_SOURCES = gstdtsdownmix.c
 
 libgstdtsdownmix_la_CFLAGS = $(GST_CFLAGS)
-libgstdtsdownmix_la_LIBADD = $(GST_LIBS) -lgstbase-0.10 $(DTS_LIBS)
+libgstdtsdownmix_la_LIBADD = $(GST_LIBS) -lgstbase-$(GST_MAJORMINOR) $(DTS_LIBS)
 libgstdtsdownmix_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
 endif
