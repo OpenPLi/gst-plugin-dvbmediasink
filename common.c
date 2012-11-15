@@ -4,7 +4,7 @@
 
 void queue_push(queue_entry_t **queue_base, GstBuffer *buffer, size_t start, size_t end)
 {
-	queue_entry_t *entry = malloc(sizeof(queue_entry_t));
+	queue_entry_t *entry = g_malloc(sizeof(queue_entry_t));
 	queue_entry_t *last = *queue_base;
 	gst_buffer_ref(buffer);
 	entry->buffer = buffer;
@@ -27,7 +27,7 @@ void queue_pop(queue_entry_t **queue_base)
 	queue_entry_t *base = *queue_base;
 	*queue_base = base->next;
 	gst_buffer_unref(base->buffer);
-	free(base);
+	g_free(base);
 }
 
 int queue_front(queue_entry_t **queue_base, GstBuffer **buffer, size_t *start, size_t *end)

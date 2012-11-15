@@ -1357,12 +1357,12 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 					video_codec_data_t videocodecdata;
 					gint codec_size = GST_BUFFER_SIZE(gst_value_get_buffer(codec_data));
 					videocodecdata.length = 8 + codec_size;
-					data = videocodecdata.data = (guint8*)malloc(videocodecdata.length);
+					data = videocodecdata.data = (guint8*)g_malloc(videocodecdata.length);
 					memset(data, 0, videocodecdata.length);
 					data += 8;
 					memcpy(data, GST_BUFFER_DATA(gst_value_get_buffer(codec_data)), codec_size);
 					ioctl(self->fd, VIDEO_SET_CODEC_DATA, &videocodecdata);
-					free(videocodecdata.data);
+					g_free(videocodecdata.data);
 				}
 			}
 			else if (self->codec_type == CT_VC1_SM)
@@ -1378,7 +1378,7 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 					gst_structure_get_int(structure, "width", &width);
 					gst_structure_get_int(structure, "height", &height);
 					videocodecdata.length = 33;
-					data = videocodecdata.data = (guint8*)malloc(videocodecdata.length);
+					data = videocodecdata.data = (guint8*)g_malloc(videocodecdata.length);
 					memset(data, 0, videocodecdata.length);
 					data += 18;
 					/* width */
@@ -1389,7 +1389,7 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 					*(data++) = height & 0xff;
 					if (codec_data && codec_size) memcpy(data, GST_BUFFER_DATA(gst_value_get_buffer(codec_data)), codec_size);
 					ioctl(self->fd, VIDEO_SET_CODEC_DATA, &videocodecdata);
-					free(videocodecdata.data);
+					g_free(videocodecdata.data);
 				}
 			}
 			ioctl(self->fd, VIDEO_PLAY);
