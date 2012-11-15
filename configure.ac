@@ -8,6 +8,14 @@ AC_ARG_WITH(gstversion,
 GST_REQUIRED=0.10.0
 GSTPB_REQUIRED=0.10.0
 
+dnl fill in your package name and version here
+dnl the fourth (nano) number should be 0 for a release, 1 for CVS,
+dnl and 2... for a prerelease
+
+dnl when going to/from release please set the nano correctly !
+dnl releases only do Wall, cvs and prerelease does Werror too
+AS_VERSION(gst-plugin, GST_PLUGIN_VERSION, $GST_MAJORMINOR, 0, 1, GST_PLUGIN_CVS="no", GST_PLUGIN_CVS="yes")
+
 dnl AM_MAINTAINER_MODE provides the option to enable maintainer mode
 AM_MAINTAINER_MODE
 
