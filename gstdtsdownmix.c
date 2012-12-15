@@ -30,8 +30,13 @@ static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
 			)
 	);
 
-static gboolean gst_dtsdownmix_sink_event (GstPad * pad, GstEvent * event);
-static GstFlowReturn gst_dtsdownmix_chain (GstPad * pad, GstBuffer * buf);
+#if GST_VERSION_MAJOR < 1
+static gboolean gst_dtsdownmix_sink_event(GstPad * pad, GstEvent * event);
+static GstFlowReturn gst_dtsdownmix_chain(GstPad *pad, GstBuffer *buf);
+#else
+static gboolean gst_dtsdownmix_sink_event(GstPad * pad, GstObject *parent, GstEvent * event);
+static GstFlowReturn gst_dtsdownmix_chain(GstPad *pad, GstObject *parent, GstBuffer *buf);
+#endif
 static GstStateChangeReturn gst_dtsdownmix_change_state (GstElement * element, GstStateChange transition);
 
 static GstElementClass *parent_class = NULL;
@@ -44,12 +49,17 @@ static void gst_dtsdownmix_base_init(gpointer g_class)
 			gst_static_pad_template_get (&sink_factory));
 	gst_element_class_add_pad_template (element_class,
 			gst_static_pad_template_get (&src_factory));
-	gst_element_class_set_details_simple (element_class, "DTS audio downmixer",
+#if GST_VERSION_MAJOR < 1
+	gst_element_class_set_details_simple(element_class, "DTS audio downmixer",
 			"Codec/Decoder/Audio",
 			"Downmixes DTS audio streams",
-			"");
-
-	GST_DEBUG_CATEGORY_INIT(dtsdownmix_debug, "dtsdownmix", 0, "DTS audio downmixer");
+			"PLi team");
+#else
+	gst_element_class_set_static_metadata(element_class, "DTS audio downmixer",
+			"Codec/Decoder/Audio",
+			"Downmixes DTS audio streams",
+			"PLi team");
+#endif
 }
 
 static void gst_dtsdownmix_class_init(GstDtsDownmixClass *klass)
@@ -102,7 +112,11 @@ GType gst_dtsdownmix_get_type(void)
 	return dtsdownmix_type;
 }
 
-static gboolean gst_dtsdownmix_sink_event(GstPad *pad, GstEvent *event)
+#if GST_VERSION_MAJOR < 1
+static gboolean gst_dtsdownmix_sink_event(GstPad * pad, GstEvent * event)
+#else
+static gboolean gst_dtsdownmix_sink_event(GstPad * pad, GstObject *parent, GstEvent * event)
+#endif
 {
 	GstDtsDownmix *dts = GST_DTSDOWNMIX(gst_pad_get_parent(pad));
 	gboolean ret = FALSE;
@@ -111,15 +125,14 @@ static gboolean gst_dtsdownmix_sink_event(GstPad *pad, GstEvent *event)
 
 	switch (GST_EVENT_TYPE (event)) 
 	{
+#if GST_VERSION_MAJOR < 1
 		case GST_EVENT_NEWSEGMENT:
 		{
 			GstFormat format;
 			gboolean update;
-			gint64 start, end, pos;
 			gdouble rate;
-
+			gint64 start, end, pos;
 			gst_event_parse_new_segment(event, &update, &rate, &format, &start, &end, &pos);
-
 			if (format != GST_FORMAT_TIME || !GST_CLOCK_TIME_IS_VALID (start)) 
 			{
 				GST_WARNING ("No time in newsegment event %p (format is %s)",
@@ -141,6 +154,16 @@ static gboolean gst_dtsdownmix_sink_event(GstPad *pad, GstEvent *event)
 			}
 
 			gst_segment_set_newsegment(&dts->segment, update, rate, format, start, end, pos);
+#else
+		case GST_EVENT_SEGMENT:
+		{
+			gst_event_copy_segment(event, &dts->segment);
+			dts->sent_segment = TRUE;
+			if (dts->srcpad)
+			{
+				ret = gst_pad_push_event(dts->srcpad, event);
+			}
+#endif
 			break;
 		}
 		case GST_EVENT_TAG:
@@ -189,12 +212,15 @@ static void gst_dtsdownmix_update_streaminfo(GstDtsDownmix *dts)
 {
 	GstTagList *taglist;
 
+#if GST_VERSION_MAJOR < 1
 	taglist = gst_tag_list_new();
-
 	gst_tag_list_add(taglist, GST_TAG_MERGE_APPEND,
 			GST_TAG_BITRATE, (guint) dts->bit_rate, NULL);
-
 	gst_element_found_tags_for_pad(GST_ELEMENT(dts), dts->srcpad, taglist);
+#else
+	taglist = gst_tag_list_new(GST_TAG_BITRATE, (guint) dts->bit_rate, NULL);
+	gst_pad_push_event(dts->srcpad, gst_event_new_tag(taglist));
+#endif
 }
 
 static GstFlowReturn gst_dtsdownmix_handle_frame(GstDtsDownmix *dts, guint8 *data, guint length)
@@ -215,16 +241,26 @@ static GstFlowReturn gst_dtsdownmix_handle_frame(GstDtsDownmix *dts, guint8 *dat
 	/* handle decoded data, one block is 256 samples */
 	num_blocks = dca_blocks_num(dts->state);
 
+#if GST_VERSION_MAJOR < 1
 	if (gst_pad_alloc_buffer_and_set_caps(dts->srcpad, 0, num_blocks * 256 * dts->using_channels * 2 + 7, GST_PAD_CAPS(dts->srcpad), &buffer) == GST_FLOW_OK)
+#else
+	if ((buffer = gst_buffer_new_allocate(NULL, num_blocks * 256 * dts->using_channels * 2 + 7, NULL)))
+#endif
 	{
 		gint i;
 		gint16 *dest;
 		gint8 *header;
+#if GST_VERSION_MAJOR < 1
+		header = GST_BUFFER_DATA(buffer);
+#else
+		GstMapInfo map;
+		gst_buffer_map(buffer, &map, GST_MAP_WRITE);
+		header = map.data;
+#endif
 		GST_BUFFER_DURATION(buffer) = num_blocks * GST_SECOND * 256 / dts->sample_rate;
 		GST_BUFFER_TIMESTAMP(buffer) = dts->timestamp;
 		dts->timestamp += GST_BUFFER_DURATION(buffer);
 
-		header = (gint8*)GST_BUFFER_DATA(buffer);
 		*header++ = 0xa0;
 		*header++ = 0x01; /* frame count */
 		*header++ = 0x00; /* first access unit pointer msb */
@@ -263,6 +299,9 @@ static GstFlowReturn gst_dtsdownmix_handle_frame(GstDtsDownmix *dts, guint8 *dat
 				}
 			}
 		}
+#if GST_VERSION_MAJOR >= 1
+		gst_buffer_unmap(buffer, &map);
+#endif
 		/* push on */
 		return gst_pad_push(dts->srcpad, buffer);
 	}
@@ -272,12 +311,19 @@ static GstFlowReturn gst_dtsdownmix_handle_frame(GstDtsDownmix *dts, guint8 *dat
 	}
 }
 
+#if GST_VERSION_MAJOR < 1
 static GstFlowReturn gst_dtsdownmix_chain(GstPad *pad, GstBuffer *buf)
+#else
+static GstFlowReturn gst_dtsdownmix_chain(GstPad *pad, GstObject *parent, GstBuffer *buf)
+#endif
 {
 	GstDtsDownmix *dts;
 	guint8 *data;
-	gint size;
+	gsize size;
 	gint bit_rate = -1;
+#if GST_VERSION_MAJOR >= 1
+	GstMapInfo map;
+#endif
 
 	dts = GST_DTSDOWNMIX(GST_PAD_PARENT(pad));
 
@@ -312,21 +358,35 @@ static GstFlowReturn gst_dtsdownmix_chain(GstPad *pad, GstBuffer *buf)
 			* new-segment event
 			*/
 		gst_segment_init(&segment, GST_FORMAT_TIME);
+#if GST_VERSION_MAJOR < 1
 		gst_pad_push_event(dts->srcpad, gst_event_new_new_segment(FALSE,
 						segment.rate, segment.format, segment.start,
 						segment.duration, segment.start));
+#else
+		gst_pad_push_event(dts->srcpad, gst_event_new_segment(&segment));
+#endif
 		dts->sent_segment = TRUE;
 	}
 
 	/* merge with cache, if any */
 	if (dts->cache)
 	{
+#if GST_VERSION_MAJOR < 1
 		buf = gst_buffer_join(dts->cache, buf);
+#else
+		buf = gst_buffer_append(dts->cache, buf);
+#endif
 		dts->cache = NULL;
 	}
 
+#if GST_VERSION_MAJOR < 1
 	data = GST_BUFFER_DATA(buf);
 	size = GST_BUFFER_SIZE(buf);
+#else
+	gst_buffer_map(buf, &map, GST_MAP_READ);
+	data = map.data;
+	size = map.size;
+#endif
 	while (size >= 7)
 	{
 		if (dts->dtsheader[0])
@@ -381,9 +441,22 @@ static GstFlowReturn gst_dtsdownmix_chain(GstPad *pad, GstBuffer *buf)
 	if (size > 0)
 	{
 		/* keep cache */
-		dts->cache = gst_buffer_create_sub(buf, GST_BUFFER_SIZE(buf) - size, size);
+		gsize fullsize;
+#if GST_VERSION_MAJOR < 1
+		fullsize = GST_BUFFER_SIZE(buf);
+#else
+		fullsize = gst_buffer_get_size(buf);
+#endif
+#if GST_VERSION_MAJOR < 1
+		dts->cache = gst_buffer_create_sub(buf, fullsize - size, size);
+#else
+		dts->cache = gst_buffer_copy_region(buf, GST_BUFFER_COPY_ALL, fullsize - size, size);
+#endif
 	}
 
+#if GST_VERSION_MAJOR >= 1
+	gst_buffer_unmap(buf, &map);
+#endif
 	gst_buffer_unref(buf);
 	return GST_FLOW_OK;
 }
@@ -528,6 +601,10 @@ static gboolean plugin_init (GstPlugin * plugin)
 
 GST_PLUGIN_DEFINE (GST_VERSION_MAJOR,
 		GST_VERSION_MINOR,
+#if GST_VERSION_MAJOR < 1
 		"dtsdownmix",
+#else
+		dtsdownmix,
+#endif
 		"Downmixes DTS audio streams",
 		plugin_init, VERSION, "LGPL", "GStreamer", "http://gstreamer.net/");

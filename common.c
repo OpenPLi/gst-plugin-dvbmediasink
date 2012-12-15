@@ -6,8 +6,12 @@ void queue_push(queue_entry_t **queue_base, GstBuffer *buffer, size_t start, siz
 {
 	queue_entry_t *entry = g_malloc(sizeof(queue_entry_t));
 	queue_entry_t *last = *queue_base;
+#if GST_VERSION_MAJOR < 1
 	gst_buffer_ref(buffer);
 	entry->buffer = buffer;
+#else
+	entry->buffer = gst_buffer_copy(buffer);
+#endif
 	entry->start = start;
 	entry->end = end;
 	if (!last)
