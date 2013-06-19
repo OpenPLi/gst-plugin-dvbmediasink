@@ -134,24 +134,24 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 		"signed = (boolean) { TRUE, FALSE }, " \
 		"width = (int) 32, " \
 		"depth = (int) 32, " \
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; " \
+		"rate = (int) [ 1, 48000 ], " "channels = (int) [ 1, 2 ]; " \
 		"audio/x-raw-int, " \
 		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
 		"signed = (boolean) { TRUE, FALSE }, " \
 		"width = (int) 24, " \
 		"depth = (int) 24, " \
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; " \
+		"rate = (int) [ 1, 48000 ], " "channels = (int) [ 1, 2 ]; " \
 		"audio/x-raw-int, " \
 		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
 		"signed = (boolean) { TRUE, FALSE }, " \
 		"width = (int) 16, " \
 		"depth = (int) 16, " \
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ]; " \
+		"rate = (int) [ 1, 48000 ], " "channels = (int) [ 1, 2 ]; " \
 		"audio/x-raw-int, " \
 		"signed = (boolean) { TRUE, FALSE }, " \
 		"width = (int) 8, " \
 		"depth = (int) 8, " \
-		"rate = (int) [ 1, MAX ], " "channels = (int) [ 1, 2 ];"
+		"rate = (int) [ 1, 48000 ], " "channels = (int) [ 1, 2 ];"
 
 static GstStaticPadTemplate sink_factory =
 GST_STATIC_PAD_TEMPLATE(
