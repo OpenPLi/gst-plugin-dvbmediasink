@@ -96,6 +96,7 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 #ifdef HAVE_MP3
 #define MPEGCAPS \
 		"audio/mpeg, " \
+		"profile = (string) lc, " \
 		"framed =(boolean) true; "
 #else
 #define MPEGCAPS \
