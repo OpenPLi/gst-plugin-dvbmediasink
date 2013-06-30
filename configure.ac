@@ -3,10 +3,10 @@ AC_INIT
 dnl versions of gstreamer and plugins-base
 AC_ARG_WITH(gstversion,
 	AS_HELP_STRING([--with-gstversion],[use gstreamer version (major.minor)]),
-	[GST_MAJORMINOR=$withval],[GST_MAJORMINOR=0.10])
+	[GST_MAJORMINOR=$withval],[GST_MAJORMINOR=1.0])
 
-GST_REQUIRED=0.10.0
-GSTPB_REQUIRED=0.10.0
+GST_REQUIRED=1.0
+GSTPB_REQUIRED=1.0
 
 dnl fill in your package name and version here
 dnl the fourth (nano) number should be 0 for a release, 1 for CVS,

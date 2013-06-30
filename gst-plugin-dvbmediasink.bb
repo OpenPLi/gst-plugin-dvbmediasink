@@ -7,16 +7,15 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=7fbc338309ac38fefcd64b04bb903e34"
 inherit externalsrc
 
 S = "${FILE_DIRNAME}"
-WORKDIR = "${S}/build"
 
-PV = "0.10.0"
+PV = "1.0"
 PR = "r0"
 
 inherit autotools pkgconfig
 
-FILES_${PN} = "${libdir}/gstreamer-0.10/*.so*"
-FILES_${PN}-dev += "${libdir}/gstreamer-0.10/*.la ${libdir}/gstreamer-0.10/*.a"
-FILES_${PN}-dbg += "${libdir}/gstreamer-0.10/.debug"
+FILES_${PN} = "${libdir}/gstreamer-1.0/*.so*"
+FILES_${PN}-dev += "${libdir}/gstreamer-1.0/*.la ${libdir}/gstreamer-1.0/*.a"
+FILES_${PN}-dbg += "${libdir}/gstreamer-1.0/.debug"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
