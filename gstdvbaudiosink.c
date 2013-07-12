@@ -360,6 +360,7 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	int bypass = -1;
 
 	self->skip = 0;
+	self->aac_adts_header_valid = FALSE;
 
 	if (!strcmp(type, "audio/mpeg"))
 	{
