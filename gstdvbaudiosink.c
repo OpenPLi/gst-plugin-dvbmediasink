@@ -111,6 +111,12 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 		"audio/x-private1-ac3, " \
 		"framed =(boolean) true; "
 
+#define EAC3CAPS \
+		"audio/x-eac3, " \
+		"framed =(boolean) true; " \
+		"audio/x-private1-eac3, " \
+		"framed =(boolean) true; "
+
 #define LPCMCAPS \
 		"audio/x-private1-lpcm, " \
 		"framed =(boolean) true; "
@@ -162,6 +168,9 @@ GST_STATIC_PAD_TEMPLATE(
 	GST_STATIC_CAPS(
 		MPEGCAPS 
 		AC3CAPS
+#ifdef HAVE_EAC3
+		EAC3CAPS
+#endif
 #ifdef HAVE_DTS
 		DTSCAPS
 #endif
@@ -471,6 +480,11 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 		GST_INFO_OBJECT(self, "MIMETYPE %s",type);
 		bypass = 0;
 	}
+	else if (!strcmp(type, "audio/x-eac3"))
+	{
+		GST_INFO_OBJECT(self, "MIMETYPE %s",type);
+		bypass = 0x22;
+	}
 	else if (!strcmp(type, "audio/x-private1-dts"))
 	{
 		GST_INFO_OBJECT(self, "MIMETYPE %s(DVD Audio - 2 byte skipping)",type);
@@ -481,6 +495,12 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	{
 		GST_INFO_OBJECT(self, "MIMETYPE %s(DVD Audio - 2 byte skipping)",type);
 		bypass = 0;
+		self->skip = 2;
+	}
+	else if (!strcmp(type, "audio/x-private1-eac3"))
+	{
+		GST_INFO_OBJECT(self, "MIMETYPE %s(DVD Audio - 2 byte skipping)",type);
+		bypass = 0x22;
 		self->skip = 2;
 	}
 	else if (!strcmp(type, "audio/x-private1-lpcm"))

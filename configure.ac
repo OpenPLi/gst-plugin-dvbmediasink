@@ -205,6 +205,13 @@ if test "$have_pcm" = "yes"; then
 	AC_DEFINE([HAVE_PCM],[1],[Define to 1 for PCM support])
 fi
 
+AC_ARG_WITH(eac3,
+	AS_HELP_STRING([--with-eac3],[support E-AC3 / AC3+ / DDP, yes or no]),
+	[have_eac3=$withval],[have_eac3=no])
+if test "$have_eac3" = "yes"; then
+	AC_DEFINE([HAVE_EAC3],[1],[Define to 1 for E-AC3 support])
+fi
+
 AC_ARG_WITH(dtsdownmix,
 	AS_HELP_STRING([--with-dtsdownmix],[build dts downmix element, yes or no]),
 	[have_dtsdownmix=$withval],[have_dtsdownmix=no])
