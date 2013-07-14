@@ -194,6 +194,9 @@ static void gst_dtsdownmix_update_streaminfo(GstDtsDownmix *dts)
 	gst_tag_list_add(taglist, GST_TAG_MERGE_APPEND,
 			GST_TAG_BITRATE, (guint) dts->bit_rate, NULL);
 
+	gst_tag_list_add(taglist, GST_TAG_MERGE_APPEND,
+			GST_TAG_AUDIO_CODEC, "Downmixed DTS", NULL);
+
 	gst_element_found_tags_for_pad(GST_ELEMENT(dts), dts->srcpad, taglist);
 }
 
