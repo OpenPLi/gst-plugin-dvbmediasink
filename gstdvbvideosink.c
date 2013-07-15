@@ -1080,6 +1080,12 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	const char *mimetype = gst_structure_get_name (structure);
 	int streamtype = -1;
 
+	if (self->codec_data)
+	{
+		gst_buffer_unref(self->codec_data);
+		self->codec_data = NULL;
+	}
+
 	if (!strcmp (mimetype, "video/mpeg"))
 	{
 		gint mpegversion;

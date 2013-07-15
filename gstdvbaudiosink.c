@@ -371,6 +371,12 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	self->skip = 0;
 	self->aac_adts_header_valid = FALSE;
 
+	if (self->codec_data)
+	{
+		gst_buffer_unref(self->codec_data);
+		self->codec_data = NULL;
+	}
+
 	if (!strcmp(type, "audio/mpeg"))
 	{
 		gint mpegversion;
@@ -1174,6 +1180,12 @@ static gboolean gst_dvbaudiosink_stop(GstBaseSink * basesink)
 		}
 		close(self->fd);
 		self->fd = -1;
+	}
+
+	if (self->codec_data)
+	{
+		gst_buffer_unref(self->codec_data);
+		self->codec_data = NULL;
 	}
 
 	if (self->pesheader_buffer)
