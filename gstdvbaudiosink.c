@@ -1055,7 +1055,11 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 	 */
 	if (timestamp == GST_CLOCK_TIME_NONE)
 	{
+#if GST_VERSION_MAJOR < 1
 		timestamp = GST_BUFFER_TIMESTAMP(buffer);
+#else
+		timestamp = GST_BUFFER_PTS(buffer);
+#endif
 		if (timestamp != GST_CLOCK_TIME_NONE && duration != GST_CLOCK_TIME_NONE)
 		{
 			self->timestamp = timestamp + duration;
@@ -1069,7 +1073,11 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 		}
 		else
 		{
+#if GST_VERSION_MAJOR < 1
 			timestamp = GST_BUFFER_TIMESTAMP(buffer);
+#else
+			timestamp = GST_BUFFER_PTS(buffer);
+#endif
 			self->timestamp = GST_CLOCK_TIME_NONE;
 		}
 	}
@@ -1265,10 +1273,11 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 		GstBuffer *newbuffer;
 #if GST_VERSION_MAJOR < 1
 		newbuffer = gst_buffer_create_sub(buffer, self->skip, buffersize - self->skip);
+		GST_BUFFER_TIMESTAMP(newbuffer) = timestamp;
 #else
 		newbuffer = gst_buffer_copy_region(buffer, GST_BUFFER_COPY_ALL, self->skip, buffersize - self->skip);
+		GST_BUFFER_PTS(newbuffer) = timestamp;
 #endif
-		GST_BUFFER_TIMESTAMP(newbuffer) = timestamp;
 		GST_BUFFER_DURATION(newbuffer) = duration;
 		if (disposebuffer) gst_buffer_unref(disposebuffer);
 		buffer = disposebuffer = newbuffer;
@@ -1286,11 +1295,12 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 #if GST_VERSION_MAJOR < 1
 		buffer = gst_buffer_join(self->cache, buffer);
 		buffersize = GST_BUFFER_SIZE(buffer);
+		GST_BUFFER_TIMESTAMP(buffer) = timestamp;
 #else
 		buffer = gst_buffer_append(self->cache, buffer);
 		buffersize = gst_buffer_get_size(buffer);
+		GST_BUFFER_PTS(buffer) = timestamp;
 #endif
-		GST_BUFFER_TIMESTAMP(buffer) = timestamp;
 		GST_BUFFER_DURATION(buffer) = duration;
 		disposebuffer = buffer;
 		self->cache = NULL;
@@ -1317,11 +1327,13 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 					GstBuffer *block;
 #if GST_VERSION_MAJOR < 1
 					block = gst_buffer_create_sub(buffer, index, self->fixed_buffersize);
-#else
-					block = gst_buffer_copy_region(buffer, GST_BUFFER_COPY_ALL, index, self->fixed_buffersize);
-#endif
 					/* only the first buffer needs the correct timestamp, next buffer timestamps will be ignored (and extrapolated) */
 					GST_BUFFER_TIMESTAMP(block) = self->fixed_buffertimestamp;
+#else
+					block = gst_buffer_copy_region(buffer, GST_BUFFER_COPY_ALL, index, self->fixed_buffersize);
+					/* only the first buffer needs the correct timestamp, next buffer timestamps will be ignored (and extrapolated) */
+					GST_BUFFER_PTS(block) = self->fixed_buffertimestamp;
+#endif
 					GST_BUFFER_DURATION(block) = self->fixed_bufferduration;
 					self->fixed_buffertimestamp += self->fixed_bufferduration;
 					gst_dvbaudiosink_push_buffer(self, block);

@@ -840,12 +840,20 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 		}
 	}
 
+#if GST_VERSION_MAJOR < 1
 	if (GST_BUFFER_TIMESTAMP(buffer) != GST_CLOCK_TIME_NONE)
+#else
+	if (GST_BUFFER_PTS(buffer) != GST_CLOCK_TIME_NONE)
+#endif
 	{
 		pes_header[7] = 0x80; /* pts */
 		pes_header[8] = 5; /* pts size */
 		pes_header_len += 5;
+#if GST_VERSION_MAJOR < 1
 		pes_set_pts(GST_BUFFER_TIMESTAMP(buffer), pes_header);
+#else
+		pes_set_pts(GST_BUFFER_PTS(buffer), pes_header);
+#endif
 
 		if (self->codec_data)
 		{
@@ -1065,7 +1073,11 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 	if (self->prev_frame && self->prev_frame != buffer)
 	{
+#if GST_VERSION_MAJOR < 1
 		pes_set_pts(GST_BUFFER_TIMESTAMP(self->prev_frame), pes_header);
+#else
+		pes_set_pts(GST_BUFFER_PTS(self->prev_frame), pes_header);
+#endif
 	}
 
 	if (commit_prev_frame_data)
@@ -1215,7 +1227,11 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 #endif
 	if (video_write(sink, self, buffer, data - original_data, (data - original_data) + data_len) < 0) goto error;
 
+#if GST_VERSION_MAJOR < 1
 	if (GST_BUFFER_TIMESTAMP(buffer) != GST_CLOCK_TIME_NONE)
+#else
+	if (GST_BUFFER_PTS(buffer) != GST_CLOCK_TIME_NONE)
+#endif
 	{
 		self->pts_written = TRUE;
 	}
