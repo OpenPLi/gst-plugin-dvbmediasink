@@ -1,4 +1,4 @@
-AC_INIT
+AC_INIT([gst-plugin-dvbmediasink],[0.10])
 
 dnl versions of gstreamer and plugins-base
 AC_ARG_WITH(gstversion,
