@@ -790,7 +790,7 @@ static gboolean gst_dvbaudiosink_event(GstBaseSink *sink, GstEvent *event)
 			if (pfd[1].revents & POLLIN)
 			{
 				GST_DEBUG_OBJECT(self, "got buffer empty from driver!\n");
-				gst_dvbaudiosink_stop(self);
+				ret = GST_BASE_SINK_CLASS(parent_class)->event(sink, event);
 				break;
 			}
 
@@ -877,6 +877,7 @@ static gboolean gst_dvbaudiosink_event(GstBaseSink *sink, GstEvent *event)
 	}
 
 	default:
+		ret = GST_BASE_SINK_CLASS(parent_class)->event(sink, event);
 		break;
 	}
 
