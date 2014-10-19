@@ -492,6 +492,7 @@ static gboolean gst_dvbvideosink_event(GstBaseSink *sink, GstEvent *event)
 				}
 				ioctl(self->fd, VIDEO_SLOWMOTION, repeat);
 				ioctl(self->fd, VIDEO_FAST_FORWARD, skip);
+				ioctl(self->fd, VIDEO_CONTINUE);
 				self->rate = rate;
 			}
 		}

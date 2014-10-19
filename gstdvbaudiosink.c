@@ -852,6 +852,7 @@ static gboolean gst_dvbaudiosink_event(GstBaseSink *sink, GstEvent *event)
 					}
 					ioctl(video_fd, VIDEO_SLOWMOTION, repeat);
 					ioctl(video_fd, VIDEO_FAST_FORWARD, skip);
+					ioctl(video_fd, VIDEO_CONTINUE);
 					close(video_fd);
 					video_fd = -1;
 				}
