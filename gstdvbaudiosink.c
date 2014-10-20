@@ -129,8 +129,7 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 		"framed =(boolean) true; "
 
 #define WMACAPS \
-		"audio/x-wma, " \
-		"framed =(boolean) true; "
+		"audio/x-wma; " \
 
 #define AMRCAPS \
 		"audio/AMR, " \
