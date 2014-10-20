@@ -307,7 +307,7 @@ static void gst_dvbaudiosink_init(GstDVBAudioSink *self)
 	self->queue = NULL;
 	self->fd = -1;
 	self->unlockfd[0] = self->unlockfd[1] = -1;
-	self->rate = 0.0;
+	self->rate = 1.0;
 	self->timestamp = GST_CLOCK_TIME_NONE;
 
 	gst_base_sink_set_sync(GST_BASE_SINK(self), FALSE);
@@ -1035,7 +1035,6 @@ static int audio_write(GstDVBAudioSink *self, GstBuffer *buffer, size_t start, s
 #if GST_VERSION_MAJOR >= 1
 	gst_buffer_unmap(buffer, &map);
 #endif
-	GST_DEBUG_OBJECT(self, "Written %d queue bytes...", written);
 	return retval;
 }
 
@@ -1130,10 +1129,7 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 			++pos;
 		}
 	}
-	if (!self->pts_written)
-	{
-		timestamp = 1;
-	}
+
 	if (timestamp != GST_CLOCK_TIME_NONE)
 	{
 		pes_header[7] = 0x80; /* pts */
@@ -1213,7 +1209,6 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 
 	pes_set_payload_size(size + pes_header_len - 6, pes_header);
 
-
 	if (audio_write(self, self->pesheader_buffer, 0, pes_header_len) < 0) goto error;
 	if (audio_write(self, buffer, data - original_data, data - original_data + size) < 0) goto error;
 	if (timestamp != GST_CLOCK_TIME_NONE)
@@ -1260,12 +1255,6 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 	buffersize = gst_buffer_get_size(buffer);
 	GstClockTime timestamp = GST_BUFFER_PTS(buffer);
 #endif
-	gst_dvbaudiosink_get_decoder_time(self);
-
-	if (self->fd < 0)
-	{
-	//	return GST_FLOW_OK;
-	}
 
 	if (self->bypass < 0)
 	{
@@ -1277,7 +1266,6 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 
 	if (GST_BUFFER_IS_DISCONT(buffer)) 
 	{
-		GST_DEBUG_OBJECT(self, "BUFFER IS DISCONTINUOUS");
 		if (self->cache) 
 		{
 			gst_buffer_unref(self->cache);
@@ -1293,7 +1281,6 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 
 	if (self->skip)
 	{
-		GST_DEBUG_OBJECT(self, "SKIP");
 		GstBuffer *newbuffer;
 #if GST_VERSION_MAJOR < 1
 		newbuffer = gst_buffer_create_sub(buffer, self->skip, buffersize - self->skip);
@@ -1314,7 +1301,6 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 
 	if (self->cache)
 	{
-		GST_DEBUG_OBJECT(self, "CACHE");
 		/* join unrefs both buffers */
 #if GST_VERSION_MAJOR < 1
 		buffer = gst_buffer_join(self->cache, buffer);
@@ -1397,7 +1383,6 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 		}
 		else
 		{
-			GST_DEBUG_OBJECT(self, "direct push buffer");
 			retval = gst_dvbaudiosink_push_buffer(self, buffer);
 		}
 	}
@@ -1461,7 +1446,7 @@ static gboolean gst_dvbaudiosink_stop(GstBaseSink * basesink)
 				ioctl(video_fd, VIDEO_FAST_FORWARD, 0);
 				close(video_fd);
 			}
-			self->rate = 0.0;
+			self->rate = 1.0;
 		}
 		close(self->fd);
 		self->fd = -1;
@@ -1520,10 +1505,7 @@ static GstStateChangeReturn gst_dvbaudiosink_change_state(GstElement *element, G
 		break;
 	case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
 		GST_DEBUG_OBJECT(self,"GST_STATE_CHANGE_PAUSED_TO_PLAYING");
-		if (self->fd >= 0) {
-			ioctl(self->fd, AUDIO_CONTINUE);
-			GST_DEBUG_OBJECT(self, "ioctl AUDIO_CONTINUE");
-		}
+		if (self->fd >= 0) ioctl(self->fd, AUDIO_CONTINUE);
 		self->paused = FALSE;
 		break;
 	default:
