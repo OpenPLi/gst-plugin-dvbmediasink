@@ -96,41 +96,31 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 #ifdef HAVE_MP3
 #define MPEGCAPS \
 		"audio/mpeg, " \
-		"profile = (string) lc, " \
-		"framed =(boolean) true; "
+		"profile = (string) lc; "
 #else
 #define MPEGCAPS \
 		"audio/mpeg, " \
 		"mpegversion = (int) 1, " \
-		"layer = (int) [ 1, 2 ], " \
-		"framed =(boolean) true; "
+		"layer = (int) [ 1, 2 ]; "
 #endif
 
 #define AC3CAPS \
-		"audio/x-ac3, " \
-		"framed =(boolean) true; " \
-		"audio/x-private1-ac3, " \
-		"framed =(boolean) true; "
+		"audio/x-ac3; " \
+		"audio/x-private1-ac3; "
 
 #define EAC3CAPS \
-		"audio/x-eac3, " \
-		"framed =(boolean) true; " \
-		"audio/x-private1-eac3, " \
-		"framed =(boolean) true; "
+		"audio/x-eac3; " \
+		"audio/x-private1-eac3; "
 
 #define LPCMCAPS \
-		"audio/x-private1-lpcm, " \
-		"framed =(boolean) true; "
+		"audio/x-private1-lpcm; "
 
 #define DTSCAPS \
-		"audio/x-dts, " \
-		"framed =(boolean) true; " \
-		"audio/x-private1-dts, " \
-		"framed =(boolean) true; "
+		"audio/x-dts; " \
+		"audio/x-private1-dts; "
 
 #define WMACAPS \
-		"audio/x-wma, " \
-		"framed =(boolean) true; "
+		"audio/x-wma; "
 
 #define AMRCAPS \
 		"audio/AMR, " \
