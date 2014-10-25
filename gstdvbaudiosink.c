@@ -375,6 +375,9 @@ static GstCaps *gst_dvbaudiosink_get_caps(GstBaseSink *basesink, GstCaps *filter
 	GstCaps *caps = gst_caps_from_string(
 		MPEGCAPS 
 		AC3CAPS
+#ifdef HAVE_EAC3
+		EAC3CAPS
+#endif
 #ifdef HAVE_LPCM
 		LPCMCAPS
 #endif
