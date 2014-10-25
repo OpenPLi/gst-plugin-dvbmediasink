@@ -533,15 +533,6 @@ static int video_write(GstBaseSink *sink, GstDVBVideoSink *self, GstBuffer *buff
 	data = map.data;
 #endif
 
-	if (GST_IS_BUFFER(buffer))
-	{
-		GST_DEBUG_OBJECT(self, "buffer is a buffer");
-	}
-	else
-	{
-		GST_DEBUG_OBJECT(self, "buffer IS NOT A BUFFER");
-	}
-
 	pfd[0].fd = self->unlockfd[0];
 	pfd[0].events = POLLIN;
 	pfd[1].fd = self->fd;
@@ -644,9 +635,7 @@ static int video_write(GstBaseSink *sink, GstDVBVideoSink *self, GstBuffer *buff
 #endif
 				int wr = write(self->fd, queuedata + queuestart, queueend - queuestart);
 #if GST_VERSION_MAJOR >= 1
-				GST_DEBUG_OBJECT(self, "1 video_write unmap?");
 				gst_buffer_unmap(queuebuffer, &queuemap);
-				GST_DEBUG_OBJECT(self, "1 video_write unmap!");
 #endif
 				if (wr < 0)
 				{
@@ -940,12 +929,8 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 					}
 					/* switch to the h264 buffer, where we copied the original render buffer contents */
 #if GST_VERSION_MAJOR >= 1
-					GST_DEBUG_OBJECT(self, "2 gst_dvbvideosink_render unmap?");
 					gst_buffer_unmap(buffer, &map);
-					GST_DEBUG_OBJECT(self, "2 gst_dvbvideosink_render unmap!");
-					GST_DEBUG_OBJECT(self, "3 gst_dvbvideosink_render unmap?");
 					gst_buffer_unmap(tmpbuf, &tmpmap);
-					GST_DEBUG_OBJECT(self, "3 gst_dvbvideosink_render unmap!");
 #endif
 					buffer = tmpbuf;
 #if GST_VERSION_MAJOR < 1
