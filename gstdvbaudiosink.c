@@ -96,14 +96,20 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 #ifdef HAVE_MP3
 #define MPEGCAPS \
 		"audio/mpeg, " \
+		"mpegversion = (int) 1, " \
+		"layer = (int) [ 1, 3 ], " \
+		"parsed = (boolean) true; " \
+		"audio/mpeg, " \
+		"mpegversion = (int) { 2, 4 }, " \
 		"profile = (string) lc, " \
-		"framed =(boolean) true; "
+		"stream-format = (string) { raw, adts, adif, loas }, " \
+		"framed = (boolean) true; "
 #else
 #define MPEGCAPS \
 		"audio/mpeg, " \
 		"mpegversion = (int) 1, " \
 		"layer = (int) [ 1, 2 ], " \
-		"framed =(boolean) true; "
+		"parsed = (boolean) true; "
 #endif
 
 #define AC3CAPS \
