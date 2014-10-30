@@ -1290,7 +1290,7 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	GstDVBVideoSink *self = GST_DVBVIDEOSINK (basesink);
 	GstStructure *structure = gst_caps_get_structure (caps, 0);
 	const char *mimetype = gst_structure_get_name (structure);
-	int streamtype = -1;
+	self->stream_type = STREAMTYPE_UNKNOWN;
 
 	if (self->codec_data)
 	{
@@ -1307,14 +1307,14 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 		switch (mpegversion)
 		{
 			case 1:
-				streamtype = 6;
+				self->stream_type = STREAMTYPE_MPEG1;
 				self->codec_type = CT_MPEG1;
-				GST_INFO_OBJECT (self, "MIMETYPE video/mpeg1 -> VIDEO_SET_STREAMTYPE, 6");
+				GST_INFO_OBJECT (self, "MIMETYPE video/mpeg1 -> STREAMTYPE_MPEG1");
 			break;
 			case 2:
-				streamtype = 0;
+				self->stream_type = STREAMTYPE_MPEG2;
 				self->codec_type = CT_MPEG2;
-				GST_INFO_OBJECT (self, "MIMETYPE video/mpeg2 -> VIDEO_SET_STREAMTYPE, 0");
+				GST_INFO_OBJECT (self, "MIMETYPE video/mpeg2 -> STREAMTYPE_MPEG2");
 			break;
 			case 4:
 			{
@@ -1326,8 +1326,8 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 					self->codec_type = CT_MPEG4_PART2;
 					gst_buffer_ref (self->codec_data);
 				}
-				streamtype = 4;
-				GST_INFO_OBJECT (self, "MIMETYPE video/mpeg4 -> VIDEO_SET_STREAMTYPE, 4");
+				self->stream_type = STREAMTYPE_MPEG4_Part2;
+				GST_INFO_OBJECT (self, "MIMETYPE video/mpeg4 -> STREAMTYPE_MPEG4_Part2");
 			}
 			break;
 			default:
@@ -1345,13 +1345,13 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			self->codec_type = CT_MPEG4_PART2;
 			gst_buffer_ref (self->codec_data);
 		}
-		streamtype = 4;
-		GST_INFO_OBJECT (self, "MIMETYPE video/x-3ivx -> VIDEO_SET_STREAMTYPE, 4");
+		self->stream_type = STREAMTYPE_MPEG4_Part2;
+		GST_INFO_OBJECT (self, "MIMETYPE video/x-3ivx -> STREAMTYPE_MPEG4_Part2");
 	}
 	else if (!strcmp (mimetype, "video/x-h264"))
 	{
 		const GValue *cd_data = gst_structure_get_value(structure, "codec_data");
-		streamtype = 1;
+		self->stream_type = STREAMTYPE_MPEG4_H264;
 		if (cd_data)
 		{
 			unsigned char tmp[2048];
@@ -1451,20 +1451,20 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 		{
 			self->h264_nal_len_size = 0;
 		}
-		GST_INFO_OBJECT (self, "MIMETYPE video/x-h264 VIDEO_SET_STREAMTYPE, 1");
+		GST_INFO_OBJECT (self, "MIMETYPE video/x-h264 -> STREAMTYPE_MPEG4_H264");
 	}
 	else if (!strcmp (mimetype, "video/x-h263"))
 	{
-		streamtype = 2;
-		GST_INFO_OBJECT (self, "MIMETYPE video/x-h263 VIDEO_SET_STREAMTYPE, 2");
+		self->stream_type = STREAMTYPE_H263;
+		GST_INFO_OBJECT (self, "MIMETYPE video/x-h263 -> STREAMTYPE_H263");
 	}
 	else if (!strcmp (mimetype, "video/x-xvid"))
 	{
-		streamtype = 10;
+		self->stream_type = STREAMTYPE_XVID;
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 		self->must_pack_bitstream = TRUE;
 #endif
-		GST_INFO_OBJECT (self, "MIMETYPE video/x-xvid -> VIDEO_SET_STREAMTYPE, 10");
+		GST_INFO_OBJECT (self, "MIMETYPE video/x-xvid -> STREAMTYPE_XVID");
 	}
 	else if (!strcmp (mimetype, "video/x-divx") || !strcmp (mimetype, "video/x-msmpeg"))
 	{
@@ -1512,9 +1512,9 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 				data[2] = B_GET_BITS(height,9,2);
 				data[3]= B_SET_BITS("height [1.0]", B_GET_BITS(height,1,0), 7, 6) |
 					B_SET_BITS("'100000'", 0x20, 5, 0);
-				streamtype = 13;
+				self->stream_type = STREAMTYPE_DIVX311;
 				self->codec_type = CT_DIVX311;
-				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 3 -> VIDEO_SET_STREAMTYPE, 13");
+				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 3 -> STREAMTYPE_DIVX311");
 #if GST_VERSION_MAJOR >= 1
 				gst_buffer_unmap(self->codec_data, &map);
 #endif
@@ -1522,7 +1522,7 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			break;
 #if GST_VERSION_MAJOR < 1
 			case 4:
-				streamtype = 14;
+				self->stream_type = STREAMTYPE_DIVX4;
 				self->codec_type = CT_DIVX4;
 				self->codec_data = gst_buffer_new_and_alloc(12);
 #if GST_VERSION_MAJOR < 1
@@ -1532,21 +1532,23 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 				gst_buffer_fill(self->codec_data, 0, "\x00\x00\x01\xb2\x44\x69\x76\x58\x34\x41\x4e\x44", 12);
 #endif
 				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 4 -> VIDEO_SET_STREAMTYPE, 14");
+				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 4 -> STREAMTYPE_DIVX4");
 			break;
 #endif
 			case 6:
 			case 5:
 #if GST_VERSION_MAJOR >= 1
 			case 4:
-				streamtype = 4;
+				self->stream_type = STREAMTYPE_MPEG4_Part2;
 				self->codec_type = CT_MPEG4_PART2;
+				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. %d -> STREAMTYPE_MPEG4_Part2", divxversion);
 #else
-				streamtype = 15;
+				self->stream_type = STREAMTYPE_DIVX5;
+				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 5 -> STREAMTYPE_DIVX5");
 #endif
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 				self->must_pack_bitstream = TRUE;
 #endif
-				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. %d -> VIDEO_SET_STREAMTYPE, %d", divxversion, streamtype);
 			break;
 			default:
 				GST_ELEMENT_ERROR (self, STREAM, FORMAT, (NULL), ("unhandled divx version %i", divxversion));
@@ -1567,17 +1569,19 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 #endif
 		if (fourcc == GST_MAKE_FOURCC('W', 'V', 'C', '1') || fourcc == GST_MAKE_FOURCC('W', 'M', 'V', 'A'))
 		{
-			streamtype = 3;
+			self->stream_type = STREAMTYPE_VC1;
 			self->codec_type = CT_VC1;
+			GST_INFO_OBJECT (self, "MIMETYPE video/x-wmv WVC1 -> STREAMTYPE_VC1");
 		}
 		else
 		{
-			streamtype = 5;
+			self->stream_type = STREAMTYPE_VC1_SM;
 			self->codec_type = CT_VC1_SM;
+			GST_INFO_OBJECT (self, "MIMETYPE video/x-wmv -> STREAMTYPE_VC1_SM");
 		}
 	}
 
-	if (streamtype != -1)
+	if (self->stream_type != STREAMTYPE_UNKNOWN)
 	{
 		gint numerator, denominator;
 		if (gst_structure_get_fraction (structure, "framerate", &numerator, &denominator))
@@ -1608,9 +1612,9 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			if (self->fd >= 0) ioctl(self->fd, VIDEO_STOP, 0);
 			self->playing = FALSE;
 		}
-		if (self->fd < 0 || ioctl(self->fd, VIDEO_SET_STREAMTYPE, streamtype) < 0)
+		if (self->fd < 0 || ioctl(self->fd, VIDEO_SET_STREAMTYPE, self->stream_type) < 0)
 		{
-			GST_ELEMENT_ERROR(self, STREAM, CODEC_NOT_FOUND, (NULL), ("hardware decoder can't handle streamtype %i", streamtype));
+			GST_ELEMENT_ERROR(self, STREAM, CODEC_NOT_FOUND, (NULL), ("hardware decoder can't handle streamtype %i", self->stream_type));
 		}
 		if (self->fd >= 0) 
 		{
