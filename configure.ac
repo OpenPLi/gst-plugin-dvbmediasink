@@ -21,6 +21,8 @@ AM_MAINTAINER_MODE
 
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
 
+AC_CONFIG_MACRO_DIR([m4])
+
 dnl make aclocal work in maintainer mode
 AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
 
