@@ -298,7 +298,7 @@ static void gst_dvbaudiosink_init(GstDVBAudioSink *self)
 #endif
 {
 	self->codec_data = NULL;
-	self->bypass = -1;
+	self->bypass = AUDIOTYPE_UNKNOWN;
 	self->fixed_buffersize = 0;
 	self->fixed_bufferduration = GST_CLOCK_TIME_NONE;
 	self->fixed_buffertimestamp = GST_CLOCK_TIME_NONE;
@@ -424,7 +424,7 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	GstDVBAudioSink *self = GST_DVBAUDIOSINK(basesink);
 	GstStructure *structure = gst_caps_get_structure(caps, 0);
 	const char *type = gst_structure_get_name(structure);
-	int bypass = -1;
+	t_audio_type bypass = AUDIOTYPE_UNKNOWN;
 
 	self->skip = 0;
 	self->aac_adts_header_valid = FALSE;
@@ -447,13 +447,13 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 				gst_structure_get_int(structure, "layer", &layer);
 				if (layer == 3)
 				{
-					bypass = 0xa;
+					bypass = AUDIOTYPE_MP3;
 				}
 				else
 				{
-					bypass = 1;
+					bypass = AUDIOTYPE_MPEG;
 				}
-				GST_INFO_OBJECT(self, "MIMETYPE %s version %d layer %d",type,mpegversion,layer);
+				GST_INFO_OBJECT(self, "MIMETYPE %s version %d layer %d", type, mpegversion, layer);
 				break;
 			}
 			case 2:
@@ -536,7 +536,7 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 						}
 					}
 				}
-				bypass = 0x0b; // always use AAC+ ADTS yet..
+				bypass = AUDIOTYPE_AAC_PLUS; // always use AAC+ ADTS yet..
 				break;
 			}
 			default:
@@ -547,40 +547,40 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	else if (!strcmp(type, "audio/x-ac3"))
 	{
 		GST_INFO_OBJECT(self, "MIMETYPE %s",type);
-		bypass = 0;
+		bypass = AUDIOTYPE_AC3;
 	}
 	else if (!strcmp(type, "audio/x-eac3"))
 	{
 		GST_INFO_OBJECT(self, "MIMETYPE %s",type);
-		bypass = 0x22;
+		bypass = AUDIOTYPE_AC3_PLUS;
 	}
 	else if (!strcmp(type, "audio/x-private1-dts"))
 	{
 		GST_INFO_OBJECT(self, "MIMETYPE %s(DVD Audio - 2 byte skipping)",type);
-		bypass = 2;
+		bypass = AUDIOTYPE_DTS;
 		self->skip = 2;
 	}
 	else if (!strcmp(type, "audio/x-private1-ac3"))
 	{
 		GST_INFO_OBJECT(self, "MIMETYPE %s(DVD Audio - 2 byte skipping)",type);
-		bypass = 0;
+		bypass = AUDIOTYPE_AC3;
 		self->skip = 2;
 	}
 	else if (!strcmp(type, "audio/x-private1-eac3"))
 	{
 		GST_INFO_OBJECT(self, "MIMETYPE %s(DVD Audio - 2 byte skipping)",type);
-		bypass = 0x22;
+		bypass = AUDIOTYPE_AC3_PLUS;
 		self->skip = 2;
 	}
 	else if (!strcmp(type, "audio/x-private1-lpcm"))
 	{
 		GST_INFO_OBJECT(self, "MIMETYPE %s(DVD Audio)",type);
-		bypass = 6;
+		bypass = AUDIOTYPE_LPCM;
 	}
 	else if (!strcmp(type, "audio/x-dts"))
 	{
 		GST_INFO_OBJECT(self, "MIMETYPE %s",type);
-		bypass = 2;
+		bypass = AUDIOTYPE_DTS;
 	}
 	else if (!strcmp(type, "audio/x-wma"))
 	{
@@ -593,7 +593,7 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 		gst_structure_get_int(structure, "channels", &channels);
 		gst_structure_get_int(structure, "block_align", &block_align);
 		GST_INFO_OBJECT(self, "MIMETYPE %s",type);
-		bypass = (wmaversion > 2) ? 0x21 : 0x20;
+		bypass = (wmaversion > 2) ? AUDIOTYPE_WMA_PRO : AUDIOTYPE_WMA;
 		if (codec_data)
 		{
 			guint8 *data;
@@ -655,7 +655,7 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			self->codec_data = gst_buffer_copy(gst_value_get_buffer(codec_data));
 		}
 		GST_INFO_OBJECT(self, "MIMETYPE %s",type);
-		bypass = 0x23;
+		bypass = AUDIOTYPE_AMR;
 	}
 	else if (!strcmp(type, XRAW))
 	{
@@ -733,7 +733,7 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 		self->fixed_buffertimestamp = GST_CLOCK_TIME_NONE;
 		self->fixed_bufferduration = GST_SECOND * (GstClockTime)self->fixed_buffersize / (GstClockTime)byterate;
 		GST_INFO_OBJECT(self, "MIMETYPE %s", type);
-		bypass = 0x30;
+		bypass = AUDIOTYPE_RAW;
 #if GST_VERSION_MAJOR >= 1
 		gst_buffer_unmap(self->codec_data, &map);
 #endif
@@ -1131,7 +1131,7 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 	pes_header[8] = 0;
 	pes_header_len = 9;
 
-	if (self->bypass == 2)
+	if (self->bypass == AUDIOTYPE_DTS)
 	{
 		int pos = 0;
 		while ((pos + 4) <= size)
@@ -1173,7 +1173,7 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 		pes_header_len += 7;
 	}
 
-	if (self->bypass == 6 && (data[0] < 0xa0 || data[0] > 0xaf))
+	if (self->bypass == AUDIOTYPE_LPCM && (data[0] < 0xa0 || data[0] > 0xaf))
 	{
 		/*
 		 * gstmpegdemux removes the streamid and the number of frames
@@ -1183,7 +1183,7 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 		pes_header[pes_header_len++] = 0xa0;
 		pes_header[pes_header_len++] = 0x01;
 	}
-	else if (self->bypass == 0x20 || self->bypass == 0x21)
+	else if (self->bypass == AUDIOTYPE_WMA || self->bypass == AUDIOTYPE_WMA_PRO)
 	{
 		if (self->codec_data)
 		{
@@ -1196,7 +1196,7 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 			pes_header_len += codec_data_size;
 		}
 	}
-	else if (self->bypass == 0x23)
+	else if (self->bypass == AUDIOTYPE_AMR)
 	{
 		if (self->codec_data && codec_data_size >= 17)
 		{
@@ -1209,7 +1209,7 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 			pes_header_len += 9;
 		}
 	}
-	else if (self->bypass == 0x30)
+	else if (self->bypass == AUDIOTYPE_RAW)
 	{
 		if (self->codec_data && codec_data_size >= 18)
 		{
@@ -1272,7 +1272,7 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 	GstClockTime timestamp = GST_BUFFER_PTS(buffer);
 #endif
 
-	if (self->bypass < 0)
+	if (self->bypass <= AUDIOTYPE_UNKNOWN)
 	{
 		GST_ELEMENT_ERROR(self, STREAM, FORMAT,(NULL), ("hardware decoder not setup (no caps in pipeline?)"));
 		return GST_FLOW_ERROR;

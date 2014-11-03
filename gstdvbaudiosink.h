@@ -67,6 +67,24 @@ typedef struct _GstDVBAudioSink		GstDVBAudioSink;
 typedef struct _GstDVBAudioSinkClass	GstDVBAudioSinkClass;
 typedef struct _GstDVBAudioSinkPrivate	GstDVBAudioSinkPrivate;
 
+typedef enum {
+	AUDIOTYPE_UNKNOWN = -1,
+	AUDIOTYPE_AC3 = 0,
+	AUDIOTYPE_MPEG = 1,
+	AUDIOTYPE_DTS = 2,
+	AUDIOTYPE_LPCM = 6,
+	AUDIOTYPE_AAC = 8,
+	AUDIOTYPE_AAC_HE = 9,
+	AUDIOTYPE_MP3 = 0xa,
+	AUDIOTYPE_AAC_PLUS = 0xb,
+	AUDIOTYPE_DTS_HD = 0x10,
+	AUDIOTYPE_WMA = 0x20,
+	AUDIOTYPE_WMA_PRO = 0x21,
+	AUDIOTYPE_AC3_PLUS = 0x22,
+	AUDIOTYPE_AMR = 0x23,
+	AUDIOTYPE_RAW = 0x30
+} t_audio_type;
+
 struct _GstDVBAudioSink
 {
 	GstBaseSink element;
