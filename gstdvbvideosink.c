@@ -300,6 +300,7 @@ static void gst_dvbvideosink_init (GstDVBVideoSink *self, GstDVBVideoSinkClass *
 	self->pesheader_buffer = NULL;
 	self->codec_data = NULL;
 	self->codec_type = CT_H264;
+	self->stream_type = STREAMTYPE_UNKNOWN;
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 	self->must_pack_bitstream = FALSE;
 	self->num_non_keyframes = 0;
