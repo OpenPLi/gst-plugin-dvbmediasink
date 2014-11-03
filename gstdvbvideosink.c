@@ -1112,10 +1112,10 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 				{
 					GST_INFO_OBJECT (self, "MPEG4 have codec data");
 					self->codec_data = gst_value_get_buffer(codec_data);
-					self->codec_type = CT_MPEG4_PART2;
 					gst_buffer_ref (self->codec_data);
 				}
 				self->stream_type = STREAMTYPE_MPEG4_Part2;
+				self->codec_type = CT_MPEG4_PART2;
 				GST_INFO_OBJECT (self, "MIMETYPE video/mpeg4 -> STREAMTYPE_MPEG4_Part2");
 			}
 			break;
@@ -1131,16 +1131,17 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 		{
 			GST_INFO_OBJECT (self, "have 3ivx codec... handle as CT_MPEG4_PART2");
 			self->codec_data = gst_value_get_buffer(codec_data);
-			self->codec_type = CT_MPEG4_PART2;
 			gst_buffer_ref (self->codec_data);
 		}
 		self->stream_type = STREAMTYPE_MPEG4_Part2;
+		self->codec_type = CT_MPEG4_PART2;
 		GST_INFO_OBJECT (self, "MIMETYPE video/x-3ivx -> STREAMTYPE_MPEG4_Part2");
 	}
 	else if (!strcmp (mimetype, "video/x-h264"))
 	{
 		const GValue *cd_data = gst_structure_get_value(structure, "codec_data");
 		self->stream_type = STREAMTYPE_MPEG4_H264;
+		self->codec_type = CT_H264;
 		if (cd_data)
 		{
 			unsigned char tmp[2048];
@@ -1229,11 +1230,13 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	else if (!strcmp (mimetype, "video/x-h263"))
 	{
 		self->stream_type = STREAMTYPE_H263;
+		self->codec_type = CT_MPEG4_PART2;
 		GST_INFO_OBJECT (self, "MIMETYPE video/x-h263 -> STREAMTYPE_H263");
 	}
 	else if (!strcmp (mimetype, "video/x-xvid"))
 	{
 		self->stream_type = STREAMTYPE_XVID;
+		self->codec_type = CT_MPEG4_PART2;
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 		self->must_pack_bitstream = TRUE;
 #endif
@@ -1294,6 +1297,7 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			case 6:
 			case 5:
 				self->stream_type = STREAMTYPE_DIVX5;
+				self->codec_type = CT_MPEG4_PART2;
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 				self->must_pack_bitstream = TRUE;
 #endif
