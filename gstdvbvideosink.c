@@ -176,12 +176,14 @@ GST_STATIC_PAD_TEMPLATE (
 	GST_PAD_SINK,
 	GST_PAD_ALWAYS,
 	GST_STATIC_CAPS (
-	"video/mpeg, "
 #ifdef HAVE_MPEG4
-		"mpegversion = (int) { 1, 2, 4 }, "
-#else
-		"mpegversion = (int) { 1, 2 }, "
+	"video/mpeg, "
+		"mpegversion = (int) 4, "
+		"profile = (string) { simple, advanced-simple }, "
+		VIDEO_CAPS "; "
 #endif
+	"video/mpeg, "
+		"mpegversion = (int) { 1, 2 }, "
 		VIDEO_CAPS "; "
 #ifdef HAVE_H264
 	"video/x-h264, "
@@ -815,6 +817,9 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 		}
 	}
 #endif
+	/* remove dummy packed B-Frame */
+	if (self->codec_type == CT_MPEG4_PART2 && data_len <= 7)
+		goto ok;
 
 	pes_header[0] = 0;
 	pes_header[1] = 0;
