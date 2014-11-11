@@ -179,7 +179,7 @@ GST_STATIC_PAD_TEMPLATE (
 #ifdef HAVE_MPEG4
 	"video/mpeg, "
 		"mpegversion = (int) 4, "
-		"profile = (string) { simple, advanced-simple }, "
+		"parsed = (boolean) true, "
 		VIDEO_CAPS "; "
 #endif
 	"video/mpeg, "
