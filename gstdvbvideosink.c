@@ -76,7 +76,7 @@
 #include <gst/gst.h>
 #include <gst/base/gstbasesink.h>
 
-#define PACK_UNPACKED_XVID_DIVX5_BITSTREAM
+#undef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 
 #include "common.h"
 #include "gstdvbvideosink.h"
@@ -207,7 +207,15 @@ GST_STATIC_PAD_TEMPLATE (
 #else
 		VIDEO_CAPS 
 #endif
-		", divxversion = (int) [ 3, 5 ]; "
+		", divxversion = (int) 3;"
+	"video/x-divx, "
+#ifdef HAVE_LIMITED_MPEG4V2
+		MPEG4V2_LIMITED_CAPS
+#else
+		VIDEO_CAPS
+#endif
+		", parsed = (boolean) true "
+		", divxversion = (int) [4, 6];"
 	"video/x-xvid, "
 #ifdef HAVE_LIMITED_MPEG4V2
 		MPEG4V2_LIMITED_CAPS
@@ -818,7 +826,7 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 	}
 #endif
 	/* remove dummy packed B-Frame */
-	if (self->codec_type == CT_MPEG4_PART2 && data_len <= 7)
+	if (self->codec_type == CT_MPEG4_PART2 && data_len < 10)
 		goto ok;
 
 	pes_header[0] = 0;
@@ -1506,6 +1514,7 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 #endif
 			}
 			break;
+#if GST_VERSION_MAJOR < 1
 			case 4:
 				streamtype = 14;
 				self->codec_type = CT_DIVX4;
@@ -1518,13 +1527,20 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 #endif
 				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 4 -> VIDEO_SET_STREAMTYPE, 14");
 			break;
+#endif
 			case 6:
 			case 5:
+#if GST_VERSION_MAJOR >= 1
+			case 4:
+				streamtype = 4;
+				self->codec_type = CT_MPEG4_PART2;
+#else
 				streamtype = 15;
+#endif
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 				self->must_pack_bitstream = TRUE;
 #endif
-				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 5 -> VIDEO_SET_STREAMTYPE, 15");
+				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. %d -> VIDEO_SET_STREAMTYPE, %d", divxversion, streamtype);
 			break;
 			default:
 				GST_ELEMENT_ERROR (self, STREAM, FORMAT, (NULL), ("unhandled divx version %i", divxversion));
