@@ -1548,16 +1548,15 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			}
 			break;
 			case 4:
-				self->stream_type = STREAMTYPE_DIVX4;
-				self->codec_type = CT_DIVX4;
-				self->codec_data = gst_buffer_new_and_alloc(12);
-#if GST_VERSION_MAJOR < 1
-				guint8 *data = GST_BUFFER_DATA(self->codec_data);
-				memcpy(data, "\x00\x00\x01\xb2\x44\x69\x76\x58\x34\x41\x4e\x44", 12);
-#else
-				gst_buffer_fill(self->codec_data, 0, "\x00\x00\x01\xb2\x44\x69\x76\x58\x34\x41\x4e\x44", 12);
-#endif
-				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 4 -> STREAMTYPE_DIVX4");
+				self->stream_type = STREAMTYPE_MPEG4_Part2;
+				self->codec_type = CT_MPEG4_PART2;
+				const GValue *codec_data = gst_structure_get_value(structure, "codec_data");
+				if (codec_data)
+				{
+					self->codec_data = gst_value_get_buffer(codec_data);
+					gst_buffer_ref (self->codec_data);
+				}
+				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 4 -> STREAMTYPE_MPEG4_Part2");
 			break;
 			case 6:
 			case 5:
