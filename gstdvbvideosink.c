@@ -76,7 +76,7 @@
 #include <gst/gst.h>
 #include <gst/base/gstbasesink.h>
 
-#undef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
+#define PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 
 #include "common.h"
 #include "gstdvbvideosink.h"
@@ -179,7 +179,6 @@ GST_STATIC_PAD_TEMPLATE (
 #ifdef HAVE_MPEG4
 	"video/mpeg, "
 		"mpegversion = (int) 4, "
-		"parsed = (boolean) true, "
 		VIDEO_CAPS "; "
 #endif
 	"video/mpeg, "
@@ -214,7 +213,6 @@ GST_STATIC_PAD_TEMPLATE (
 #else
 		VIDEO_CAPS
 #endif
-		", parsed = (boolean) true "
 		", divxversion = (int) [4, 6];"
 	"video/x-xvid, "
 #ifdef HAVE_LIMITED_MPEG4V2
@@ -338,6 +336,9 @@ static void gst_dvbvideosink_init(GstDVBVideoSink *self)
 	self->must_pack_bitstream = FALSE;
 	self->num_non_keyframes = 0;
 	self->prev_frame = NULL;
+#endif
+#if GST_VERSION_MAJOR >= 1
+	self->use_dts = FALSE;
 #endif
 	self->paused = self->playing = self->unlocking = self->flushing = FALSE;
 	self->pts_written = FALSE;
@@ -826,10 +827,6 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 		}
 	}
 #endif
-	/* remove dummy packed B-Frame */
-	if (self->codec_type == CT_MPEG4_PART2 && data_len < 10)
-		goto ok;
-
 	pes_header[0] = 0;
 	pes_header[1] = 0;
 	pes_header[2] = 1;
@@ -851,7 +848,7 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 #if GST_VERSION_MAJOR < 1
 	if (GST_BUFFER_TIMESTAMP(buffer) != GST_CLOCK_TIME_NONE)
 #else
-	if (GST_BUFFER_PTS_IS_VALID(buffer) || (self->codec_type == CT_DIVX311 && GST_BUFFER_DTS_IS_VALID(buffer)))
+	if (GST_BUFFER_PTS_IS_VALID(buffer) || (self->use_dts && GST_BUFFER_DTS_IS_VALID(buffer)))
 #endif
 	{
 		pes_header[7] = 0x80; /* pts */
@@ -1080,7 +1077,7 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 #if GST_VERSION_MAJOR < 1
 		pes_set_pts(GST_BUFFER_TIMESTAMP(self->prev_frame), pes_header);
 #else
-		pes_set_pts(GST_BUFFER_PTS(self->prev_frame), pes_header);
+		pes_set_pts(GST_BUFFER_PTS_IS_VALID(self->prev_frame) ? GST_BUFFER_PTS(self->prev_frame) : GST_BUFFER_DTS(self->prev_frame), pes_header);
 #endif
 	}
 
@@ -1234,7 +1231,7 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 #if GST_VERSION_MAJOR < 1
 	if (GST_BUFFER_TIMESTAMP(buffer) != GST_CLOCK_TIME_NONE)
 #else
-	if (GST_BUFFER_PTS_IS_VALID(buffer) || (self->codec_type == CT_DIVX311 && GST_BUFFER_DTS_IS_VALID(buffer)))
+	if (GST_BUFFER_PTS_IS_VALID(buffer) || (self->use_dts && GST_BUFFER_DTS_IS_VALID(buffer)))
 #endif
 	{
 		self->pts_written = TRUE;
@@ -1321,6 +1318,25 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			break;
 			case 4:
 			{
+				self->stream_type = STREAMTYPE_MPEG4_Part2;
+#if GST_VERSION_MAJOR >= 1
+				guint32 fourcc = 0;
+				const gchar *value = gst_structure_get_string(structure, "fourcc");
+				if (value)
+					fourcc = GST_STR_FOURCC(value);
+				switch (fourcc)
+				{
+					case GST_MAKE_FOURCC('R', 'M', 'P', '4'):
+					case GST_MAKE_FOURCC('x', 'v', 'i', 'd'):
+					case GST_MAKE_FOURCC('X', 'V', 'I', 'D'):
+						self->stream_type = STREAMTYPE_XVID;
+						self->use_dts = TRUE;
+#ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
+						self->must_pack_bitstream = TRUE;
+#endif
+					break;
+				}
+#endif
 				const GValue *codec_data = gst_structure_get_value(structure, "codec_data");
 				if (codec_data)
 				{
@@ -1328,9 +1344,11 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 					self->codec_data = gst_value_get_buffer(codec_data);
 					gst_buffer_ref (self->codec_data);
 				}
-				self->stream_type = STREAMTYPE_MPEG4_Part2;
 				self->codec_type = CT_MPEG4_PART2;
-				GST_INFO_OBJECT (self, "MIMETYPE video/mpeg4 -> STREAMTYPE_MPEG4_Part2");
+				if (self->stream_type == STREAMTYPE_MPEG4_Part2)
+					GST_INFO_OBJECT (self, "MIMETYPE video/mpeg4 -> STREAMTYPE_MPEG4_Part2");
+				else
+					GST_INFO_OBJECT (self, "MIMETYPE video/xvid -> STREAMTYPE_XVID");
 			}
 			break;
 			default:
@@ -1520,13 +1538,15 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 					B_SET_BITS("'100000'", 0x20, 5, 0);
 				self->stream_type = STREAMTYPE_DIVX311;
 				self->codec_type = CT_DIVX311;
+#if GST_VERSION_MAJOR >= 1
+				self->use_dts = TRUE;
+#endif
 				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 3 -> STREAMTYPE_DIVX311");
 #if GST_VERSION_MAJOR >= 1
 				gst_buffer_unmap(self->codec_data, &map);
 #endif
 			}
 			break;
-#if GST_VERSION_MAJOR < 1
 			case 4:
 				self->stream_type = STREAMTYPE_DIVX4;
 				self->codec_type = CT_DIVX4;
@@ -1537,22 +1557,15 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 #else
 				gst_buffer_fill(self->codec_data, 0, "\x00\x00\x01\xb2\x44\x69\x76\x58\x34\x41\x4e\x44", 12);
 #endif
-				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 4 -> VIDEO_SET_STREAMTYPE, 14");
 				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 4 -> STREAMTYPE_DIVX4");
 			break;
-#endif
 			case 6:
 			case 5:
 #if GST_VERSION_MAJOR >= 1
-			case 4:
-				self->stream_type = STREAMTYPE_MPEG4_Part2;
-				self->codec_type = CT_MPEG4_PART2;
-				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. %d -> STREAMTYPE_MPEG4_Part2", divxversion);
-#else
-				self->stream_type = STREAMTYPE_DIVX5;
-				self->codec_type = CT_MPEG4_PART2;
-				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. 5 -> STREAMTYPE_DIVX5");
+				self->use_dts = TRUE;
 #endif
+				self->stream_type = STREAMTYPE_DIVX5;
+				GST_INFO_OBJECT (self, "MIMETYPE video/x-divx vers. %d -> STREAMTYPE_DIVX5", divxversion);
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 				self->must_pack_bitstream = TRUE;
 #endif

@@ -95,6 +95,9 @@ struct _GstDVBVideoSink
 	GstBuffer *codec_data;
 	t_codec_type codec_type;
 	t_stream_type stream_type;
+#if GST_VERSION_MAJOR >= 1
+	gboolean use_dts;
+#endif
 
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
 	/* data needed to pack bitstream (divx5 / xvid) */
