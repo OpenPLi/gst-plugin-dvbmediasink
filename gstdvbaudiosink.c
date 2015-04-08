@@ -125,8 +125,7 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 		"framed =(boolean) true; "
 
 #define LPCMCAPS \
-		"audio/x-private1-lpcm, " \
-		"framed =(boolean) true; "
+		"audio/x-private1-lpcm; "
 
 #define DTSCAPS \
 		"audio/x-dts, " \
