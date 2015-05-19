@@ -1277,6 +1277,7 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	GstStructure *structure = gst_caps_get_structure (caps, 0);
 	const char *mimetype = gst_structure_get_name (structure);
 	self->stream_type = STREAMTYPE_UNKNOWN;
+	self->must_send_header = TRUE;
 
 	GST_INFO_OBJECT (self, "caps = %" GST_PTR_FORMAT, caps);
 
