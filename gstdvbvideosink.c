@@ -512,17 +512,6 @@ static gboolean gst_dvbvideosink_event(GstBaseSink *sink, GstEvent *event)
 		}
 		break;
 	}
-	case GST_EVENT_CAPS:
-	{
-		GstCaps *caps;
-		gst_event_parse_caps(event, &caps);
-		if (caps)
-		{
-			ret = gst_dvbvideosink_set_caps(sink, caps);
-			gst_caps_unref(caps);
-		}
-		break;
-	}
 	default:
 		ret = GST_BASE_SINK_CLASS(parent_class)->event(sink, event);
 		break;

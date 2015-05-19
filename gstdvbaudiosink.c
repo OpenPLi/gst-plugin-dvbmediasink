@@ -897,21 +897,6 @@ static gboolean gst_dvbaudiosink_event(GstBaseSink *sink, GstEvent *event)
 		}
 		break;
 	}
-	case GST_EVENT_CAPS:
-	{
-		GstCaps *caps;
-		gst_event_parse_caps(event, &caps);
-		if (caps)
-		{
-			ret = gst_dvbaudiosink_set_caps(sink, caps);
-			//gst_caps_unref(caps);
-			if (ret != TRUE)
-			{
-				//GST_ELEMENT_ERROR(self, STREAM, FORMAT,(NULL), ("Set caps failed. Stop render."));
-			}
-		}
-	}
-
 	default:
 		ret = GST_BASE_SINK_CLASS(parent_class)->event(sink, event);
 		break;
