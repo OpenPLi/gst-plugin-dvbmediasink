@@ -525,8 +525,8 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 						guint8 h[2];
 						gst_buffer_extract(gst_value_get_buffer(codec_data), 0, h, sizeof(h));
 #endif
-						guint8 obj_type =((h[0] & 0xC) >> 2) + 1;
-						guint8 rate_idx =((h[0] & 0x3) << 1) |((h[1] & 0x80) >> 7);
+						guint8 obj_type =h[0] >> 3;
+						guint8 rate_idx =((h[0] & 0x7) << 1) |((h[1] & 0x80) >> 7);
 						guint8 channels =(h[1] & 0x78) >> 3;
 						GST_INFO_OBJECT(self, "have codec data -> obj_type = %d, rate_idx = %d, channels = %d\n",
 							obj_type, rate_idx, channels);
@@ -538,7 +538,7 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 						if (mpegversion == 2)
 							self->aac_adts_header[1] |= 8;
 						/* Object type over first 2 bits */
-						self->aac_adts_header[2] = obj_type << 6;
+						self->aac_adts_header[2] = (obj_type - 1) << 6;
 						/* rate index over next 4 bits */
 						self->aac_adts_header[2] |= rate_idx << 2;
 						/* channels over last 2 bits */
