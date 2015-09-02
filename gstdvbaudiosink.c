@@ -274,7 +274,7 @@ static void gst_dvbaudiosink_init(GstDVBAudioSink *self, GstDVBAudioSinkClass *g
 	self->timestamp = GST_CLOCK_TIME_NONE;
 
 	gst_base_sink_set_sync(GST_BASE_SINK(self), FALSE);
-	gst_base_sink_set_async_enabled(GST_BASE_SINK(self), TRUE);
+	gst_base_sink_set_async_enabled(GST_BASE_SINK(self), FALSE);
 }
 
 static gint64 gst_dvbaudiosink_get_decoder_time(GstDVBAudioSink *self)
