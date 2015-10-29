@@ -1363,6 +1363,7 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 					case GST_MAKE_FOURCC('R', 'M', 'P', '4'):
 					case GST_MAKE_FOURCC('x', 'v', 'i', 'd'):
 					case GST_MAKE_FOURCC('X', 'V', 'I', 'D'):
+					case GST_MAKE_FOURCC('F', 'M', 'P', '4'):
 						self->stream_type = STREAMTYPE_XVID;
 						self->use_dts = TRUE;
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
