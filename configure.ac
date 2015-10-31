@@ -130,6 +130,13 @@ if test "$have_mpeg4" = "yes"; then
 	AC_DEFINE([HAVE_MPEG4],[1],[Define to 1 for mpeg4 support])
 fi
 
+AC_ARG_WITH(h265,
+	AS_HELP_STRING([--with-h265],[support h265, yes or no]),
+	[have_h265=$withval],[have_h265=no])
+if test "$have_h265" = "yes"; then
+	AC_DEFINE([HAVE_H265],[1],[Define to 1 for h265 support])
+fi
+
 AC_ARG_WITH(h264,
 	AS_HELP_STRING([--with-h264],[support h264, yes or no]),
 	[have_h264=$withval],[have_h264=yes])
