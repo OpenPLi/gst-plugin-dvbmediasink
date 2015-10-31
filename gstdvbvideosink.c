@@ -190,6 +190,10 @@ GST_STATIC_PAD_TEMPLATE (
 	"video/mpeg, "
 		"mpegversion = (int) { 1, 2 }, "
 		VIDEO_CAPS "; "
+#ifdef HAVE_H265
+	"video/x-h265, "
+		VIDEO_CAPS "; "
+#endif
 #ifdef HAVE_H264
 	"video/x-h264, "
 		VIDEO_CAPS "; "
@@ -911,7 +915,7 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 					self->must_send_header = FALSE;
 				}
 			}
-			if (self->codec_type == CT_H264)
+			if (self->codec_type == CT_H264 || self->codec_type == CT_H265)
 			{
 				unsigned int pos = 0;
 				if (self->h264_nal_len_size >= 3)
@@ -1509,6 +1513,87 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			self->h264_nal_len_size = 0;
 		}
 		GST_INFO_OBJECT (self, "MIMETYPE video/x-h264 -> STREAMTYPE_MPEG4_H264");
+	}
+	else if (!strcmp (mimetype, "video/x-h265"))
+	{
+		const GValue *cd_data = gst_structure_get_value(structure, "codec_data");
+		self->stream_type = STREAMTYPE_MPEG4_H265;
+		self->codec_type = CT_H265;
+		if (cd_data)
+		{
+			unsigned char tmp[2048];
+			unsigned int tmp_len = 0;
+			GstBuffer *codec_data = gst_value_get_buffer(cd_data);
+			guint8 *data;
+			gsize cd_len;
+			unsigned int cd_pos = 0;
+#if GST_VERSION_MAJOR < 1
+			data = GST_BUFFER_DATA(codec_data);
+			cd_len = GST_BUFFER_SIZE(codec_data);
+#else
+			GstMapInfo codecdatamap;
+			gst_buffer_map(codec_data, &codecdatamap, GST_MAP_READ);
+			data = codecdatamap.data;
+			cd_len = codecdatamap.size;
+#endif
+			GST_INFO_OBJECT (self, "H265 have codec data..!");
+
+			if (cd_len > 3 && (data[0] || data[1] || data[2] > 1)) {
+				if (cd_len > 22) {
+					int i;
+					if (data[0] != 0) {
+						GST_ELEMENT_WARNING (self, STREAM, DECODE, ("Unsupported extra data version %d, decoding may fail", data[0]), (NULL));
+					}
+					self->h264_nal_len_size = (data[21] & 3) + 1;
+					int num_param_sets = data[22];
+					int pos = 23;
+					for (i = 0; i < num_param_sets; i++) {
+						int j;
+						if (pos + 3 > cd_len) {
+							GST_ELEMENT_ERROR (self, STREAM, DECODE, ("Buffer underrun in extra header (%d >= %ld)", pos + 3, cd_len), (NULL));
+							break;
+						}
+						// ignore flags + NAL type (1 byte)
+						int nal_count = data[pos + 1] << 8 | data[pos + 2];
+						pos += 3;
+						for (j = 0; j < nal_count; j++) {
+							if (pos + 2 > cd_len) {
+								GST_ELEMENT_ERROR (self, STREAM, DECODE, ("Buffer underrun in extra nal header (%d >= %ld)", pos + 2, cd_len), (NULL));
+								break;
+							}
+							int nal_size = data[pos] << 8 | data[pos + 1];
+							pos += 2;
+							if (pos + nal_size > cd_len) {
+								GST_ELEMENT_ERROR (self, STREAM, DECODE, ("Buffer underrun in extra nal (%d >= %ld)", pos + 2 + nal_size, cd_len), (NULL));
+								break;
+							}
+							memcpy(tmp+tmp_len, "\x00\x00\x00\x01", 4);
+							tmp_len += 4;
+							memcpy(tmp + tmp_len, data + pos, nal_size);
+							tmp_len += nal_size;
+							pos += nal_size;
+						}
+					}
+				}
+				GST_DEBUG ("Assuming packetized data (%d bytes length)", self->h264_nal_len_size);
+				{
+					self->codec_data = gst_buffer_new_and_alloc(tmp_len);
+#if GST_VERSION_MAJOR < 1
+					memcpy(GST_BUFFER_DATA(self->codec_data), tmp, tmp_len);
+#else
+					gst_buffer_fill(self->codec_data, 0, tmp, tmp_len);
+#endif
+				}
+			}
+#if GST_VERSION_MAJOR >= 1
+			gst_buffer_unmap(codec_data, &codecdatamap);
+#endif
+		}
+		else
+		{
+			self->h264_nal_len_size = 0;
+		}
+		GST_INFO_OBJECT (self, "MIMETYPE video/x-h265 -> STREAMTYPE_MPEG4_H265");
 	}
 	else if (!strcmp (mimetype, "video/x-h263"))
 	{
