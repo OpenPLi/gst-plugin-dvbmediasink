@@ -330,7 +330,7 @@ static void gst_dvbaudiosink_init(GstDVBAudioSink *self)
 	self->timestamp = GST_CLOCK_TIME_NONE;
 
 	gst_base_sink_set_sync(GST_BASE_SINK(self), FALSE);
-	gst_base_sink_set_async_enabled(GST_BASE_SINK(self), TRUE);
+	gst_base_sink_set_async_enabled(GST_BASE_SINK(self), FALSE);
 }
 
 static void gst_dvbaudiosink_set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec)
