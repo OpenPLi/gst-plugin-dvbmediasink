@@ -1325,6 +1325,7 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 	GstDVBVideoSink *self = GST_DVBVIDEOSINK (basesink);
 	GstStructure *structure = gst_caps_get_structure (caps, 0);
 	const char *mimetype = gst_structure_get_name (structure);
+	t_stream_type prev_stream_type = self->stream_type;
 	self->stream_type = STREAMTYPE_UNKNOWN;
 	self->must_send_header = TRUE;
 
@@ -1746,12 +1747,12 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 				fclose(f);
 			}
 		}
-		if (self->playing)
+		if (self->playing && self->stream_type != prev_stream_type)
 		{
 			if (self->fd >= 0) ioctl(self->fd, VIDEO_STOP, 0);
 			self->playing = FALSE;
 		}
-		if (self->fd < 0 || ioctl(self->fd, VIDEO_SET_STREAMTYPE, self->stream_type) < 0)
+		if (!self->playing && (self->fd < 0 || ioctl(self->fd, VIDEO_SET_STREAMTYPE, self->stream_type) < 0))
 		{
 			GST_ELEMENT_ERROR(self, STREAM, CODEC_NOT_FOUND, (NULL), ("hardware decoder can't handle streamtype %i", self->stream_type));
 		}
@@ -1827,7 +1828,8 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 #endif
 				}
 			}
-			ioctl(self->fd, VIDEO_PLAY);
+			if (!self->playing)
+				ioctl(self->fd, VIDEO_PLAY);
 		}
 		self->playing = TRUE;
 	}
