@@ -1971,7 +1971,7 @@ static GstStateChangeReturn gst_dvbvideosink_change_state(GstElement *element, G
 		break;
 	case GST_STATE_CHANGE_PAUSED_TO_PLAYING:
 		GST_DEBUG_OBJECT (self,"GST_STATE_CHANGE_PAUSED_TO_PLAYING");
-		if (self->fd >= 0) ioctl(self->fd, VIDEO_CONTINUE);
+		if (self->fd >= 0 && self->paused) ioctl(self->fd, VIDEO_CONTINUE);
 		self->paused = FALSE;
 		break;
 	default:
