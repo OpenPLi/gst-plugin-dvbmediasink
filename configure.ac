@@ -226,6 +226,34 @@ if test "$have_eac3" = "yes"; then
 	AC_DEFINE([HAVE_EAC3],[1],[Define to 1 for E-AC3 support])
 fi
 
+AC_ARG_WITH(vb6,
+	AS_HELP_STRING([--with-vb6],[support VP6 , yes or no]),
+	[have_vb6=$withval],[have_vb6=no])
+if test "$have_vb6" = "yes"; then
+	AC_DEFINE([HAVE_VB6],[1],[Define to 1 for VB6 support])
+fi
+
+AC_ARG_WITH(vb8,
+	AS_HELP_STRING([--with-vb8],[support VP8 , yes or no]),
+	[have_vb8=$withval],[have_vb8=no])
+if test "$have_vb8" = "yes"; then
+	AC_DEFINE([HAVE_VB8],[1],[Define to 1 for VB8 support])
+fi
+
+AC_ARG_WITH(vb9,
+	AS_HELP_STRING([--with-vb9],[support VP9 , yes or no]),
+	[have_vb9=$withval],[have_vb9=no])
+if test "$have_vb9" = "yes"; then
+	AC_DEFINE([HAVE_VB9],[1],[Define to 1 for VB9 support])
+fi
+
+AC_ARG_WITH(spark,
+	AS_HELP_STRING([--with-spark],[support SPARK , yes or no]),
+	[have_spark=$withval],[have_spark=no])
+if test "$have_spark" = "yes"; then
+	AC_DEFINE([HAVE_SPARK],[1],[Define to 1 for SPARK support])
+fi
+
 AC_ARG_WITH(dtsdownmix,
 	AS_HELP_STRING([--with-dtsdownmix],[build dts downmix element, yes or no]),
 	[have_dtsdownmix=$withval],[have_dtsdownmix=no])

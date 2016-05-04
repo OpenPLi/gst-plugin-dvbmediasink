@@ -246,6 +246,24 @@ GST_STATIC_PAD_TEMPLATE (
 	"video/x-wmv, "
 		VIDEO_CAPS ", wmvversion = (int) 3; "
 #endif
+#ifdef HAVE_SPARK
+	"video/x-flash-video, "
+		VIDEO_CAPS "; "
+#endif
+#ifdef HAVE_VB6
+	"video/x-vp6, "
+		VIDEO_CAPS "; "
+	"video/x-vp6-flash, "
+		VIDEO_CAPS "; "
+#endif
+#ifdef HAVE_VB8
+	"video/x-vp8, "
+		VIDEO_CAPS "; "
+#endif
+#ifdef HAVE_VB9
+	"video/x-vp9, "
+		VIDEO_CAPS "; "
+#endif
 	)
 );
 
@@ -1008,6 +1026,21 @@ static GstFlowReturn gst_dvbvideosink_render(GstBaseSink *sink, GstBuffer *buffe
 				}
 			}
 		}
+		else if (self->codec_type == CT_VP9 || self->codec_type == CT_VP8 || self->codec_type == CT_VP6 || self->codec_type == CT_SPARK) {
+			uint32_t len = data_len + 4 + 6;
+			memcpy(pes_header+pes_header_len, "BCMV", 4);
+			pes_header_len += 4;
+			if (self->codec_type == CT_VP6)
+				++len;
+			pes_header[pes_header_len++] = (len & 0xFF000000) >> 24;
+			pes_header[pes_header_len++] = (len & 0x00FF0000) >> 16;
+			pes_header[pes_header_len++] = (len & 0x0000FF00) >> 8;
+			pes_header[pes_header_len++] = (len & 0x000000FF) >> 0;
+			pes_header[pes_header_len++] = 0;
+			pes_header[pes_header_len++] = 0;
+			if (self->codec_type == CT_VP6)
+				pes_header[pes_header_len++] = 0;
+		}
 	}
 
 #ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
@@ -1718,6 +1751,30 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			self->codec_type = CT_VC1_SM;
 			GST_INFO_OBJECT (self, "MIMETYPE video/x-wmv -> STREAMTYPE_VC1_SM");
 		}
+	}
+	else if (!strcmp (mimetype, "video/x-vp6") || !strcmp (mimetype, "video/x-vp6-flash"))
+	{
+		self->stream_type = STREAMTYPE_VB6;
+		self->codec_type = CT_VP6;
+		GST_INFO_OBJECT (self, "MIMETYPE %s -> VIDEO_SET_STREAMTYPE, STREAMTYPE_VB6", mimetype);
+	}
+	else if (!strcmp (mimetype, "video/x-vp8"))
+	{
+		self->stream_type = STREAMTYPE_VB8;
+		self->codec_type = CT_VP8;
+		GST_INFO_OBJECT (self, "MIMETYPE video/x-vp8 -> VIDEO_SET_STREAMTYPE, STREAMTYPE_VB8");
+	}
+	else if (!strcmp (mimetype, "video/x-vp9"))
+	{
+		self->stream_type = STREAMTYPE_VB9;
+		self->codec_type = CT_VP9;
+		GST_INFO_OBJECT (self, "MIMETYPE video/x-vp9 -> VIDEO_SET_STREAMTYPE, STREAMTYPE_VB9");
+	}
+	else if (!strcmp (mimetype, "video/x-flash-video"))
+	{
+		self->stream_type = STREAMTYPE_SPARK;
+		self->codec_type = CT_SPARK;
+		GST_INFO_OBJECT (self, "MIMETYPE video/x-flash-video -> VIDEO_SET_STREAMTYPE, STREAMTYPE_SPARK");
 	}
 
 	if (self->stream_type != STREAMTYPE_UNKNOWN)
