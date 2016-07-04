@@ -185,6 +185,9 @@ GST_STATIC_PAD_TEMPLATE (
 #ifdef HAVE_MPEG4
 	"video/mpeg, "
 		"mpegversion = (int) 4, "
+#if GST_VERSION_MAJOR >= 1
+		"unpacked = (boolean) true, "
+#endif
 		VIDEO_CAPS "; "
 #endif
 	"video/mpeg, "
@@ -220,6 +223,7 @@ GST_STATIC_PAD_TEMPLATE (
 		VIDEO_CAPS 
 #endif
 		", divxversion = (int) 3;"
+#if GST_VERSION_MAJOR < 1
 	"video/x-divx, "
 #ifdef HAVE_LIMITED_MPEG4V2
 		MPEG4V2_LIMITED_CAPS
@@ -227,6 +231,7 @@ GST_STATIC_PAD_TEMPLATE (
 		VIDEO_CAPS
 #endif
 		", divxversion = (int) [4, 6];"
+#endif
 	"video/x-xvid, "
 #ifdef HAVE_LIMITED_MPEG4V2
 		MPEG4V2_LIMITED_CAPS
@@ -1390,25 +1395,6 @@ static gboolean gst_dvbvideosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			case 4:
 			{
 				self->stream_type = STREAMTYPE_MPEG4_Part2;
-#if GST_VERSION_MAJOR >= 1
-				guint32 fourcc = 0;
-				const gchar *value = gst_structure_get_string(structure, "fourcc");
-				if (value)
-					fourcc = GST_STR_FOURCC(value);
-				switch (fourcc)
-				{
-					case GST_MAKE_FOURCC('R', 'M', 'P', '4'):
-					case GST_MAKE_FOURCC('x', 'v', 'i', 'd'):
-					case GST_MAKE_FOURCC('X', 'V', 'I', 'D'):
-					case GST_MAKE_FOURCC('F', 'M', 'P', '4'):
-						self->stream_type = STREAMTYPE_XVID;
-						self->use_dts = TRUE;
-#ifdef PACK_UNPACKED_XVID_DIVX5_BITSTREAM
-						self->must_pack_bitstream = TRUE;
-#endif
-					break;
-				}
-#endif
 				const GValue *codec_data = gst_structure_get_value(structure, "codec_data");
 				if (codec_data)
 				{
