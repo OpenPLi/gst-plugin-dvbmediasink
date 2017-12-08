@@ -147,40 +147,12 @@ static guint gst_dvbaudiosink_signals[LAST_SIGNAL] = { 0 };
 		"audio/AMR, " \
 		"rate = (int) {8000, 16000}, channels = (int) 1; "
 
-#if GST_VERSION_MAJOR < 1
-#define XRAW "audio/x-raw-int"
-#define PCMCAPS \
-		"audio/x-raw-int, " \
-		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
-		"signed = (boolean) { TRUE, FALSE }, " \
-		"width = (int) 32, " \
-		"depth = (int) 32, " \
-		"rate = (int) [ 1, " MAX_PCM_RATE " ], " "channels = (int) [ 1, 2 ]; " \
-		"audio/x-raw-int, " \
-		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
-		"signed = (boolean) { TRUE, FALSE }, " \
-		"width = (int) 24, " \
-		"depth = (int) 24, " \
-		"rate = (int) [ 1, " MAX_PCM_RATE " ], " "channels = (int) [ 1, 2 ]; " \
-		"audio/x-raw-int, " \
-		"endianness = (int) { " G_STRINGIFY(G_BYTE_ORDER) " }, " \
-		"signed = (boolean) { TRUE, FALSE }, " \
-		"width = (int) 16, " \
-		"depth = (int) 16, " \
-		"rate = (int) [ 1, " MAX_PCM_RATE " ], " "channels = (int) [ 1, 2 ]; " \
-		"audio/x-raw-int, " \
-		"signed = (boolean) { TRUE, FALSE }, " \
-		"width = (int) 8, " \
-		"depth = (int) 8, " \
-		"rate = (int) [ 1, " MAX_PCM_RATE " ], " "channels = (int) [ 1, 2 ];"
-#else
 #define XRAW "audio/x-raw"
 #define PCMCAPS \
 		"audio/x-raw, " \
 		"format = (string) { "GST_AUDIO_NE(S32)", "GST_AUDIO_NE(S24)", "GST_AUDIO_NE(S16)", S8, "GST_AUDIO_NE(U32)", "GST_AUDIO_NE(U24)", "GST_AUDIO_NE(U16)", U8 }, " \
 		"layout = (string) { interleaved, non-interleaved }, " \
 		"rate = (int) [ 1, " MAX_PCM_RATE " ], " "channels = (int) [ 1, 2 ]; "
-#endif
 
 static GstStaticPadTemplate sink_factory =
 GST_STATIC_PAD_TEMPLATE(
@@ -211,32 +183,13 @@ GST_STATIC_PAD_TEMPLATE(
 	)
 );
 
-#if GST_VERSION_MAJOR < 1
-static void gst_dvbaudiosink_init(GstDVBAudioSink *self, GstDVBAudioSinkClass *gclass);
-#else
 static void gst_dvbaudiosink_init(GstDVBAudioSink *self);
-#endif
 
 #define DEBUG_INIT \
 	GST_DEBUG_CATEGORY_INIT(dvbaudiosink_debug, "dvbaudiosink", 0, "dvbaudiosink element");
 
-#if GST_VERSION_MAJOR < 1
-static void gst_dvbaudiosink_base_init(gpointer self)
-{
-	GstElementClass *element_class = GST_ELEMENT_CLASS(self);
-
-	gst_element_class_add_pad_template(element_class, gst_static_pad_template_get(&sink_factory));
-	gst_element_class_set_details_simple(element_class,
-		"DVB audio sink",
-		"Generic/DVBAudioSink",
-		"Outputs PES into a linuxtv dvb audio device",
-		"PLi team");
-}
-GST_BOILERPLATE_FULL(GstDVBAudioSink, gst_dvbaudiosink, GstBaseSink, GST_TYPE_BASE_SINK, DEBUG_INIT);
-#else
 static GstBaseSinkClass *parent_class = NULL;
 G_DEFINE_TYPE_WITH_CODE(GstDVBAudioSink, gst_dvbaudiosink, GST_TYPE_BASE_SINK, DEBUG_INIT);
-#endif
 
 static gboolean gst_dvbaudiosink_start(GstBaseSink * sink);
 static gboolean gst_dvbaudiosink_stop(GstBaseSink * sink);
@@ -245,11 +198,7 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink * sink, GstBuffer * buf
 static gboolean gst_dvbaudiosink_unlock(GstBaseSink * basesink);
 static gboolean gst_dvbaudiosink_unlock_stop(GstBaseSink * basesink);
 static gboolean gst_dvbaudiosink_set_caps(GstBaseSink * sink, GstCaps * caps);
-#if GST_VERSION_MAJOR < 1
-static GstCaps *gst_dvbaudiosink_get_caps(GstBaseSink *basesink);
-#else
 static GstCaps *gst_dvbaudiosink_get_caps(GstBaseSink *basesink, GstCaps *filter);
-#endif
 static GstStateChangeReturn gst_dvbaudiosink_change_state(GstElement * element, GstStateChange transition);
 static gint64 gst_dvbaudiosink_get_decoder_time(GstDVBAudioSink *self);
 static void gst_dvbaudiosink_set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec);
@@ -262,7 +211,6 @@ static void gst_dvbaudiosink_class_init(GstDVBAudioSinkClass *self)
 	GstBaseSinkClass *gstbasesink_class = GST_BASE_SINK_CLASS(self);
 	GstElementClass *element_class = GST_ELEMENT_CLASS(self);
 
-#if GST_VERSION_MAJOR >= 1
 	parent_class = g_type_class_peek_parent(self);
 
 	gst_element_class_add_pad_template(element_class, gst_static_pad_template_get(&sink_factory));
@@ -271,7 +219,6 @@ static void gst_dvbaudiosink_class_init(GstDVBAudioSinkClass *self)
 		"Generic/DVBAudioSink",
 		"Outputs PES into a linuxtv dvb audio device",
 		"PLi team");
-#endif
 	gobject_class->set_property = gst_dvbaudiosink_set_property;
 	gobject_class->get_property = gst_dvbaudiosink_get_property;
 
@@ -305,11 +252,7 @@ static void gst_dvbaudiosink_class_init(GstDVBAudioSinkClass *self)
  * set functions
  * initialize structure
  */
-#if GST_VERSION_MAJOR < 1
-static void gst_dvbaudiosink_init(GstDVBAudioSink *self, GstDVBAudioSinkClass *gclass)
-#else
 static void gst_dvbaudiosink_init(GstDVBAudioSink *self)
-#endif
 {
 	self->codec_data = NULL;
 	self->bypass = AUDIOTYPE_UNKNOWN;
@@ -416,11 +359,7 @@ static gboolean get_downmix_setting()
 }
 #endif
 
-#if GST_VERSION_MAJOR < 1
-static GstCaps *gst_dvbaudiosink_get_caps(GstBaseSink *basesink)
-#else
 static GstCaps *gst_dvbaudiosink_get_caps(GstBaseSink *basesink, GstCaps *filter)
-#endif
 {
 	GstCaps *caps = gst_caps_from_string(
 		MPEGCAPS 
@@ -453,14 +392,12 @@ static GstCaps *gst_dvbaudiosink_get_caps(GstBaseSink *basesink, GstCaps *filter
 # endif
 #endif
 
-#if GST_VERSION_MAJOR >= 1
 	if (filter)
 	{
 		GstCaps *intersection = gst_caps_intersect_full(filter, caps, GST_CAPS_INTERSECT_FIRST);
 		gst_caps_unref(caps);
 		caps = intersection;
 	}
-#endif
 	return caps;
 }
 
@@ -519,12 +456,8 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 					GST_INFO_OBJECT(self, "MIMETYPE %s version %d(AAC-RAW)", type, mpegversion);
 					if (codec_data)
 					{
-#if GST_VERSION_MAJOR < 1
-						guint8 *h = GST_BUFFER_DATA(gst_value_get_buffer(codec_data));
-#else
 						guint8 h[2];
 						gst_buffer_extract(gst_value_get_buffer(codec_data), 0, h, sizeof(h));
-#endif
 						guint8 obj_type =h[0] >> 3;
 						guint8 rate_idx =((h[0] & 0x7) << 1) |((h[1] & 0x80) >> 7);
 						guint8 channels =(h[1] & 0x78) >> 3;
@@ -645,12 +578,6 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			guint8 *codec_data_pointer;
 			gint codec_data_size;
 			gint codecid = 0x160 + wmaversion - 1;
-#if GST_VERSION_MAJOR < 1
-			codec_data_size = GST_BUFFER_SIZE(gst_value_get_buffer(codec_data));
-			codec_data_pointer = GST_BUFFER_DATA(gst_value_get_buffer(codec_data));
-			self->codec_data = gst_buffer_new_and_alloc(18 + codec_data_size);
-			data = GST_BUFFER_DATA(self->codec_data);
-#else
 			GstMapInfo map, codecdatamap;
 			gst_buffer_map(gst_value_get_buffer(codec_data), &codecdatamap, GST_MAP_READ);
 			codec_data_pointer = codecdatamap.data;
@@ -658,7 +585,6 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			self->codec_data = gst_buffer_new_and_alloc(18 + codec_data_size);
 			gst_buffer_map(self->codec_data, &map, GST_MAP_WRITE);
 			data = map.data;
-#endif
 			/* codec tag */
 			*(data++) = codecid & 0xff;
 			*(data++) = (codecid >> 8) & 0xff;
@@ -686,10 +612,8 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 			*(data++) = codec_data_size & 0xff;
 			*(data++) = (codec_data_size >> 8) & 0xff;
 			memcpy(data, codec_data_pointer, codec_data_size);
-#if GST_VERSION_MAJOR >= 1
 			gst_buffer_unmap(self->codec_data, &map);
 			gst_buffer_unmap(gst_value_get_buffer(codec_data), &codecdatamap);
-#endif
 		}
 	}
 	else if (!strcmp(type, "audio/AMR"))
@@ -707,24 +631,13 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 		guint8 *data;
 		gint size;
 		gint format = 0x01;
-#if GST_VERSION_MAJOR >= 1
 		const gchar *formatstring = NULL;
-#endif
 		gint width = 0, depth = 0, rate = 0, channels, block_align, byterate;
 		self->codec_data = gst_buffer_new_and_alloc(18);
-#if GST_VERSION_MAJOR < 1
-		data = GST_BUFFER_DATA(self->codec_data);
-		size = GST_BUFFER_SIZE(self->codec_data);
-#else
 		GstMapInfo map;
 		gst_buffer_map(self->codec_data, &map, GST_MAP_WRITE);
 		data = map.data;
 		size = map.size;
-#endif
-#if GST_VERSION_MAJOR < 1
-		gst_structure_get_int(structure, "width", &width);
-		gst_structure_get_int(structure, "depth", &depth);
-#else
 		formatstring = gst_structure_get_string(structure, "format");
 		if (formatstring)
 		{
@@ -745,7 +658,6 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 				width = depth = 8;
 			}
 		}
-#endif
 		gst_structure_get_int(structure, "rate", &rate);
 		gst_structure_get_int(structure, "channels", &channels);
 		byterate = channels * rate * width / 8;
@@ -779,9 +691,7 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 		self->fixed_bufferduration = GST_SECOND * (GstClockTime)self->fixed_buffersize / (GstClockTime)byterate;
 		GST_INFO_OBJECT(self, "MIMETYPE %s", type);
 		bypass = AUDIOTYPE_RAW;
-#if GST_VERSION_MAJOR >= 1
 		gst_buffer_unmap(self->codec_data, &map);
-#endif
 	}
 	else
 	{
@@ -846,11 +756,7 @@ static gboolean gst_dvbaudiosink_event(GstBaseSink *sink, GstEvent *event)
 		pfd[1].fd = self->fd;
 		pfd[1].events = POLLIN;
 
-#if GST_VERSION_MAJOR < 1
-		GST_PAD_PREROLL_UNLOCK(sink->sinkpad);
-#else
 		GST_BASE_SINK_PREROLL_UNLOCK(sink);
-#endif
 		while (1)
 		{
 			int retval = poll(pfd, 2, 250);
@@ -881,22 +787,9 @@ static gboolean gst_dvbaudiosink_event(GstBaseSink *sink, GstEvent *event)
 				break;
 			}
 		}
-#if GST_VERSION_MAJOR < 1
-		GST_PAD_PREROLL_LOCK(sink->sinkpad);
-#else
 		GST_BASE_SINK_PREROLL_LOCK(sink);
-#endif
 		break;
 	}
-#if GST_VERSION_MAJOR < 1
-	case GST_EVENT_NEWSEGMENT:
-	{
-		GstFormat format;
-		gboolean update;
-		gdouble rate;
-		gint64 start, end, pos;
-		gst_event_parse_new_segment(event, &update, &rate, &format, &start, &end, &pos);
-#else
 	case GST_EVENT_SEGMENT:
 	{
 		const GstSegment *segment;
@@ -909,7 +802,6 @@ static gboolean gst_dvbaudiosink_event(GstBaseSink *sink, GstEvent *event)
 		start = segment->start;
 		end = segment->stop;
 		pos = segment->position;
-#endif
 		GST_DEBUG_OBJECT(self, "GST_EVENT_NEWSEGMENT rate=%f %d\n", rate, format);
 		
 		if (format == GST_FORMAT_TIME)
@@ -956,13 +848,9 @@ static int audio_write(GstDVBAudioSink *self, GstBuffer *buffer, size_t start, s
 	struct pollfd pfd[2];
 	guint8 *data;
 	int retval = 0;
-#if GST_VERSION_MAJOR < 1
-	data = GST_BUFFER_DATA(buffer);
-#else
 	GstMapInfo map;
 	gst_buffer_map(buffer, &map, GST_MAP_READ);
 	data = map.data;
-#endif
 
 	pfd[0].fd = self->unlockfd[0];
 	pfd[0].events = POLLIN;
@@ -1018,17 +906,11 @@ static int audio_write(GstDVBAudioSink *self, GstBuffer *buffer, size_t start, s
 			if (queue_front(&self->queue, &queuebuffer, &queuestart, &queueend) >= 0)
 			{
 				guint8 *queuedata;
-#if GST_VERSION_MAJOR < 1
-				queuedata = GST_BUFFER_DATA(queuebuffer);
-#else
 				GstMapInfo queuemap;
 				gst_buffer_map(queuebuffer, &queuemap, GST_MAP_READ);
 				queuedata = queuemap.data;
-#endif
 				int wr = write(self->fd, queuedata + queuestart, queueend - queuestart);
-#if GST_VERSION_MAJOR >= 1
 				gst_buffer_unmap(queuebuffer, &queuemap);
-#endif
 				if (wr < 0)
 				{
 					switch(errno)
@@ -1075,9 +957,7 @@ static int audio_write(GstDVBAudioSink *self, GstBuffer *buffer, size_t start, s
 		}
 	} while (written < len);
 
-#if GST_VERSION_MAJOR >= 1
 	gst_buffer_unmap(buffer, &map);
-#endif
 	return retval;
 }
 
@@ -1091,16 +971,6 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 	gsize codec_data_size = 0;
 	GstClockTime timestamp = self->timestamp;
 	GstClockTime duration = GST_BUFFER_DURATION(buffer);
-#if GST_VERSION_MAJOR < 1
-	pes_header = GST_BUFFER_DATA(self->pesheader_buffer);
-	original_data = data = GST_BUFFER_DATA(buffer);
-	size = GST_BUFFER_SIZE(buffer);
-	if (self->codec_data)
-	{
-		codec_data = GST_BUFFER_DATA(self->codec_data);
-		codec_data_size = GST_BUFFER_SIZE(self->codec_data);
-	}
-#else
 	GstMapInfo map, pesheadermap, codecdatamap;
 	gst_buffer_map(buffer, &map, GST_MAP_READ);
 	original_data = data = map.data;
@@ -1113,7 +983,6 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 		codec_data = codecdatamap.data;
 		codec_data_size = codecdatamap.size;
 	}
-#endif
 	/* 
 	 * Some audioformats have incorrect timestamps, 
 	 * so if we have both a timestamp and a duration, 
@@ -1121,11 +990,7 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 	 */
 	if (timestamp == GST_CLOCK_TIME_NONE)
 	{
-#if GST_VERSION_MAJOR < 1
-		timestamp = GST_BUFFER_TIMESTAMP(buffer);
-#else
 		timestamp = GST_BUFFER_PTS(buffer);
-#endif
 		if (timestamp != GST_CLOCK_TIME_NONE && duration != GST_CLOCK_TIME_NONE)
 		{
 			self->timestamp = timestamp + duration;
@@ -1139,11 +1004,7 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 		}
 		else
 		{
-#if GST_VERSION_MAJOR < 1
-			timestamp = GST_BUFFER_TIMESTAMP(buffer);
-#else
 			timestamp = GST_BUFFER_PTS(buffer);
-#endif
 			self->timestamp = GST_CLOCK_TIME_NONE;
 		}
 	}
@@ -1258,24 +1119,20 @@ GstFlowReturn gst_dvbaudiosink_push_buffer(GstDVBAudioSink *self, GstBuffer *buf
 	{
 		self->pts_written = TRUE;
 	}
-#if GST_VERSION_MAJOR >= 1
 	gst_buffer_unmap(self->pesheader_buffer, &pesheadermap);
 	if (self->codec_data)
 	{
 		gst_buffer_unmap(self->codec_data, &codecdatamap);
 	}
 	gst_buffer_unmap(buffer, &map);
-#endif
 	return GST_FLOW_OK;
 error:
-#if GST_VERSION_MAJOR >= 1
 	gst_buffer_unmap(self->pesheader_buffer, &pesheadermap);
 	if (self->codec_data)
 	{
 		gst_buffer_unmap(self->codec_data, &codecdatamap);
 	}
 	gst_buffer_unmap(buffer, &map);
-#endif
 	{
 		GST_ELEMENT_ERROR(self, RESOURCE, READ,(NULL),
 				("audio write: %s", g_strerror(errno)));
@@ -1291,13 +1148,8 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 	GstFlowReturn retval = GST_FLOW_OK;
 	GstClockTime duration = GST_BUFFER_DURATION(buffer);
 	gsize buffersize;
-#if GST_VERSION_MAJOR < 1
-	buffersize = GST_BUFFER_SIZE(buffer);
-	GstClockTime timestamp = GST_BUFFER_TIMESTAMP(buffer);
-#else
 	buffersize = gst_buffer_get_size(buffer);
 	GstClockTime timestamp = GST_BUFFER_PTS(buffer);
-#endif
 
 	if (self->bypass <= AUDIOTYPE_UNKNOWN)
 	{
@@ -1325,35 +1177,20 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 	if (self->skip)
 	{
 		GstBuffer *newbuffer;
-#if GST_VERSION_MAJOR < 1
-		newbuffer = gst_buffer_create_sub(buffer, self->skip, buffersize - self->skip);
-		GST_BUFFER_TIMESTAMP(newbuffer) = timestamp;
-#else
 		newbuffer = gst_buffer_copy_region(buffer, GST_BUFFER_COPY_ALL, self->skip, buffersize - self->skip);
 		GST_BUFFER_PTS(newbuffer) = timestamp;
-#endif
 		GST_BUFFER_DURATION(newbuffer) = duration;
 		if (disposebuffer) gst_buffer_unref(disposebuffer);
 		buffer = disposebuffer = newbuffer;
-#if GST_VERSION_MAJOR < 1
-		buffersize = GST_BUFFER_SIZE(buffer);
-#else
 		buffersize = gst_buffer_get_size(buffer);
-#endif
 	}
 
 	if (self->cache)
 	{
 		/* join unrefs both buffers */
-#if GST_VERSION_MAJOR < 1
-		buffer = gst_buffer_join(self->cache, buffer);
-		buffersize = GST_BUFFER_SIZE(buffer);
-		GST_BUFFER_TIMESTAMP(buffer) = timestamp;
-#else
 		buffer = gst_buffer_append(self->cache, buffer);
 		buffersize = gst_buffer_get_size(buffer);
 		GST_BUFFER_PTS(buffer) = timestamp;
-#endif
 		GST_BUFFER_DURATION(buffer) = duration;
 		disposebuffer = buffer;
 		self->cache = NULL;
@@ -1378,15 +1215,9 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 				while (index <= buffersize - self->fixed_buffersize)
 				{
 					GstBuffer *block;
-#if GST_VERSION_MAJOR < 1
-					block = gst_buffer_create_sub(buffer, index, self->fixed_buffersize);
-					/* only the first buffer needs the correct timestamp, next buffer timestamps will be ignored (and extrapolated) */
-					GST_BUFFER_TIMESTAMP(block) = self->fixed_buffertimestamp;
-#else
 					block = gst_buffer_copy_region(buffer, GST_BUFFER_COPY_ALL, index, self->fixed_buffersize);
 					/* only the first buffer needs the correct timestamp, next buffer timestamps will be ignored (and extrapolated) */
 					GST_BUFFER_PTS(block) = self->fixed_buffertimestamp;
-#endif
 					GST_BUFFER_DURATION(block) = self->fixed_bufferduration;
 					self->fixed_buffertimestamp += self->fixed_bufferduration;
 					gst_dvbaudiosink_push_buffer(self, block);
@@ -1395,22 +1226,14 @@ static GstFlowReturn gst_dvbaudiosink_render(GstBaseSink *sink, GstBuffer *buffe
 				}
 				if (index < buffersize)
 				{
-#if GST_VERSION_MAJOR < 1
-					self->cache = gst_buffer_create_sub(buffer, index, buffersize - index);
-#else
 					self->cache = gst_buffer_copy_region(buffer, GST_BUFFER_COPY_ALL, index, buffersize - index);
-#endif
 				}
 				retval = GST_FLOW_OK;
 			}
 			else
 			{
 				/* could still be the original buffer, make sure we can write metadata */
-#if GST_VERSION_MAJOR < 1
-				if (!gst_buffer_is_metadata_writable(buffer))
-#else
 				if (!gst_buffer_is_writable(buffer))
-#endif
 				{
 					GstBuffer *tmpbuf = gst_buffer_copy(buffer);
 					GST_BUFFER_DURATION(tmpbuf) = self->fixed_bufferduration;
@@ -1607,11 +1430,7 @@ static gboolean plugin_init(GstPlugin *plugin)
 GST_PLUGIN_DEFINE(
 	GST_VERSION_MAJOR,
 	GST_VERSION_MINOR,
-#if GST_VERSION_MAJOR < 1
-	"dvb_audio_out",
-#else
 	dvb_audio_out,
-#endif
 	"DVB Audio Output",
 	plugin_init,
 	VERSION,
