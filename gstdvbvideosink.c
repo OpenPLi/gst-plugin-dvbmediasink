@@ -171,6 +171,7 @@ enum
 enum
 {
 	SIGNAL_GET_DECODER_TIME,
+	SIGNAL_GET_VIDEO_CODEC,
 	LAST_SIGNAL
 };
 
@@ -281,6 +282,7 @@ static gboolean gst_dvbvideosink_unlock (GstBaseSink * basesink);
 static gboolean gst_dvbvideosink_unlock_stop (GstBaseSink * basesink);
 static GstStateChangeReturn gst_dvbvideosink_change_state (GstElement * element, GstStateChange transition);
 static gint64 gst_dvbvideosink_get_decoder_time (GstDVBVideoSink *self);
+static gint64 gst_dvbvideosink_get_video_codec (GstDVBVideoSink *self);
 static void gst_dvbvideosink_set_property (GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec);
 static void gst_dvbvideosink_get_property (GObject * object, guint prop_id, GValue * value, GParamSpec * pspec);
 
@@ -324,6 +326,15 @@ static void gst_dvbvideosink_class_init(GstDVBVideoSinkClass *self)
 		NULL, NULL, gst_dvbsink_marshal_INT64__VOID, G_TYPE_INT64, 0);
 
 	self->get_decoder_time = gst_dvbvideosink_get_decoder_time;
+
+	gst_dvb_videosink_signals[SIGNAL_GET_VIDEO_CODEC] =
+		g_signal_new ("get-video-codec",
+		G_TYPE_FROM_CLASS (self),
+		G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
+		G_STRUCT_OFFSET (GstDVBVideoSinkClass, get_video_codec),
+		NULL, NULL, gst_dvbsink_marshal_INT64__VOID, G_TYPE_INT64, 0);
+
+	self->get_video_codec = gst_dvbvideosink_get_video_codec;
 }
 
 #define H264_BUFFER_SIZE (64*1024+2048)
@@ -408,6 +419,12 @@ static gint64 gst_dvbvideosink_get_decoder_time(GstDVBVideoSink *self)
 	}
 	cur *= 11111;
 	return cur - self->timestamp_offset;
+}
+
+static gint64 gst_dvbvideosink_get_video_codec(GstDVBVideoSink *self)
+{
+	// returns a superset of streamtypes available in lib/dvb/decoder.h
+	return self->stream_type;
 }
 
 static gboolean gst_dvbvideosink_unlock(GstBaseSink *basesink)
