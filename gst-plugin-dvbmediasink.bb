@@ -11,6 +11,14 @@ S = "${FILE_DIRNAME}"
 PV = "1.0"
 PR = "r0"
 
+do_unpack[noexec] = "1"
+do_populate_sysroot[noexec] = "1"
+do_populate_lic[noexec] = "1"
+do_packagedata[noexec] = "1"
+do_package_write_ipk[noexec] = "1"
+do_rm_work[noexec] = "1"
+do_rm_work_all[noexec] = "1"
+
 inherit autotools pkgconfig
 
 FILES_${PN} = "${libdir}/gstreamer-1.0/*.so*"
@@ -19,4 +27,4 @@ FILES_${PN}-dbg += "${libdir}/gstreamer-1.0/.debug"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-EXTRA_OECONF = "--with-wma --with-wmv --with-pcm --with-dtsdownmix"
+EXTRA_OECONF = "--with-wma --with-wmv --with-pcm --with-dtsdownmix --with-h265 --with-vb9 --with-eac3"
