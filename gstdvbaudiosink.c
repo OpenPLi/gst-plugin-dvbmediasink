@@ -410,6 +410,9 @@ static gboolean gst_dvbaudiosink_set_caps(GstBaseSink *basesink, GstCaps *caps)
 
 	self->skip = 0;
 	self->aac_adts_header_valid = FALSE;
+	self->fixed_buffersize = 0;
+	self->fixed_bufferduration = GST_CLOCK_TIME_NONE;
+	self->fixed_buffertimestamp = GST_CLOCK_TIME_NONE;
 
 	if (self->codec_data)
 	{
