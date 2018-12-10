@@ -645,6 +645,13 @@ static int video_write(GstBaseSink *sink, GstDVBVideoSink *self, GstBuffer *buff
 					msg = gst_message_new_element (GST_OBJECT(sink), s);
 					gst_element_post_message (GST_ELEMENT(sink), msg);
 				}
+				else if (evt.type == 17 /*VIDEO_EVENT_GAMMA_CHANGED*/)
+				{
+					s = gst_structure_new ("eventGammaChanged",
+						"gamma", G_TYPE_INT, evt.u.frame_rate, NULL);
+					msg = gst_message_new_element (GST_OBJECT(sink), s);
+					gst_element_post_message (GST_ELEMENT(sink), msg);
+				}
 				else
 				{
 					g_warning ("unhandled DVBAPI Video Event %d", evt.type);
