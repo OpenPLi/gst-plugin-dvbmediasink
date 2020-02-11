@@ -248,10 +248,10 @@ if test "$have_vb9" = "yes"; then
 fi
 
 AC_ARG_WITH(vb9-sff,
-	AS_HELP_STRING([--with-vb9-ssf],[support VP9 super frame fix, yes or no]),
+	AS_HELP_STRING([--with-vb9-sff],[support VP9 super frame fix, yes or no]),
 	[have_vb9_sff=$withval],[have_vb9_sff=no])
 if test "$have_vb9_sff" = "yes"; then
-	AC_DEFINE([HAVE_VB9_SSF],[1],[Define to 1 for VB9 super frame fix])
+	AC_DEFINE([HAVE_VB9_SFF],[1],[Define to 1 for VB9 super frame fix])
 fi
 
 AC_ARG_WITH(spark,
