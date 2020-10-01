@@ -2008,7 +2008,7 @@ static gboolean plugin_init (GstPlugin *plugin)
 GST_PLUGIN_DEFINE (
 	GST_VERSION_MAJOR,
 	GST_VERSION_MINOR,
-	dvb_video_out,
+	dvbvideosink,
 	"DVB Video Output",
 	plugin_init,
 	VERSION,
